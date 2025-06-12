@@ -24,7 +24,7 @@ export function AppHeaderNav() {
           <span className="sr-only">Open sidebar</span>
         </SidebarTrigger>
       </div>
-      <Separator orientation="vertical" className="mx-2 h-6 hidden md:block" />
+      
 
       {/* Tool Title */}
       {currentTool && (
