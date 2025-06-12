@@ -231,7 +231,7 @@ export function JsonInput({
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder={placeholder || `Paste your ${target === 1 ? "first" : "second"} JSON here...`}
-              className="zinc-textarea h-full border-0 bg-transparent zinc-scrollbar" // Changed from json-textarea
+              className="zinc-textarea h-full border-0 bg-transparent zinc-scrollbar"
               style={{ lineHeight: "1.5", whiteSpace: "pre", wordWrap: "normal" }}
               aria-label={`JSON input ${target}`}
             />

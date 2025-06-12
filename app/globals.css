@@ -217,8 +217,7 @@
     background: hsl(var(--scrollbar-track));
   }
   .modern-scrollbar {
-    /* Ensure this is also updated if used elsewhere */
-    @apply zinc-scrollbar; /* This is correct */
+    @apply zinc-scrollbar;
   }
   .zinc-transition {
     transition:

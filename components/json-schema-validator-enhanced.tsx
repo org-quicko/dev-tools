@@ -153,13 +153,15 @@ export function JsonSchemaValidatorEnhanced() {
     URL.revokeObjectURL(url)
   }
   const toggleErrorExpansion = (index: number) => {
-    const newExpanded = new Set(expandedErrors)
-    if (newExpanded.has(index)) {
-      newExpanded.delete(index)
-    } else {
-      newExpanded.add(index)
-    }
-    setExpandedErrors(newExpanded)
+    setExpandedErrors((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
   }
   const getSeverityIcon = (severity: "error" | "warning") => {
     return severity === "error" ? (
@@ -411,7 +413,7 @@ export function JsonSchemaValidatorEnhanced() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-4">
                       <div className="text-center p-2 bg-muted/50 rounded-md">
                         <div className="text-xl font-bold text-red-600">{validationResult.summary.totalErrors}</div>
                         <div className="text-muted-foreground">Errors</div>
