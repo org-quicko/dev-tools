@@ -2,36 +2,27 @@
 
 import type React from "react"
 import { useState, useCallback, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SchemaVisualizationComponent } from "./schema-visualization" // Assuming this component is well-behaved
-import { BatchValidation } from "./batch-validation" // Assuming this component is well-behaved
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Badge } from "@/components/ui/badge"
 import {
-  Upload,
   Shield,
-  CheckCircle,
-  AlertTriangle,
-  Trash2,
-  Settings,
   AlertCircle,
+  CheckCircle,
   ChevronDown,
   ChevronRight,
-  Copy,
-  Download,
-  Eye,
-  Zap,
-  Database,
   FileJson,
+  Info,
+  Trash2,
+  AlertTriangle,
 } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { JsonInput } from "./json-input" // Using the refactored JsonInput
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { SharedThreeColumnLayout, ColumnEmptyState, ColumnLoadingState } from "./shared-three-column-layout"
+import { SharedJsonInput, JsonInputActions } from "./shared-json-input"
+import { useDebounce } from "@/hooks/use-debounce"
 import {
   EnhancedJsonSchemaValidator,
   type ValidationResult,
@@ -39,20 +30,70 @@ import {
   type SchemaDraft,
 } from "@/lib/schema-validator-enhanced"
 
+// Example schema for new users
+const EXAMPLE_SCHEMA = `{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The user's full name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "The user's email address"
+    },
+    "age": {
+      "type": "integer",
+      "minimum": 18,
+      "description": "User's age in years"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zipCode": { "type": "string", "pattern": "^\\d{5}(-\\d{4})?$" }
+      },
+      "required": ["street", "city"]
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["name", "email"]
+}`
+
+const EXAMPLE_JSON = `{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "age": 25,
+  "address": {
+    "street": "123 Main St",
+    "city": "Anytown"
+  },
+  "tags": ["user", "premium"]
+}`
+
 export function JsonSchemaValidatorEnhanced() {
+  // State
   const [jsonInput, setJsonInput] = useState("")
   const [jsonError, setJsonError] = useState<string | undefined>(undefined)
   const [jsonLoading, setJsonLoading] = useState(false)
+  const [jsonFileName, setJsonFileName] = useState("")
 
   const [schemaInput, setSchemaInput] = useState("")
   const [schemaError, setSchemaError] = useState<string | undefined>(undefined)
   const [schemaLoading, setSchemaLoading] = useState(false)
-
-  const [jsonFileName, setJsonFileName] = useState("")
   const [schemaFileName, setSchemaFileName] = useState("")
+
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
   const [isValidating, setIsValidating] = useState(false)
   const [realTimeValidation, setRealTimeValidation] = useState(true)
+  const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set())
+
   const [validatorOptions, setValidatorOptions] = useState<ValidatorOptions>({
     draft: "auto",
     strict: false,
@@ -65,12 +106,13 @@ export function JsonSchemaValidatorEnhanced() {
     resolveExternalRefs: false,
     timeout: 5000,
   })
-  const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set())
-  const [validator] = useState(() => new EnhancedJsonSchemaValidator(validatorOptions)) // Options passed here might need to be dynamic
-  const [activeTab, setActiveTab] = useState("validate")
-  const [schemaVisualization, setSchemaVisualization] = useState<any>(null)
-  const [selectedProperty, setSelectedProperty] = useState<string | null>(null) // For visualization interaction
 
+  const [validator] = useState(() => new EnhancedJsonSchemaValidator(validatorOptions))
+
+  const debouncedJsonInput = useDebounce(jsonInput, 500)
+  const debouncedSchemaInput = useDebounce(schemaInput, 500)
+
+  // Validation logic
   const validateJsonCallback = useCallback(async () => {
     if (!jsonInput.trim() || !schemaInput.trim()) {
       setValidationResult(null)
@@ -85,24 +127,10 @@ export function JsonSchemaValidatorEnhanced() {
 
     setIsValidating(true)
     try {
-      // Re-initialize validator with current options if they can change
+      // Re-initialize validator with current options
       const currentValidator = new EnhancedJsonSchemaValidator(validatorOptions)
-      const result = await currentValidator.validate(jsonInput, schemaInput, validatorOptions) // Pass options again if validate method uses them directly
+      const result = await currentValidator.validate(jsonInput, schemaInput, validatorOptions)
       setValidationResult(result)
-
-      if (result.isValid || result.errors.length === 0) {
-        // Generate visualization even if only warnings
-        try {
-          const parsedSchema = currentValidator.parseInput(schemaInput)
-          const visualization = currentValidator.generateSchemaVisualization(parsedSchema)
-          setSchemaVisualization(visualization)
-        } catch (error) {
-          console.warn("Could not generate schema visualization:", error)
-          setSchemaVisualization(null)
-        }
-      } else {
-        setSchemaVisualization(null) // Clear visualization if schema is invalid
-      }
     } catch (error: any) {
       console.error("Validation error:", error)
       setValidationResult({
@@ -129,7 +157,7 @@ export function JsonSchemaValidatorEnhanced() {
     } finally {
       setIsValidating(false)
     }
-  }, [jsonInput, schemaInput, validatorOptions]) // Removed validator from deps as it's re-created with options
+  }, [jsonInput, schemaInput, validatorOptions])
 
   useEffect(() => {
     if (!realTimeValidation) return
@@ -137,7 +165,20 @@ export function JsonSchemaValidatorEnhanced() {
       validateJsonCallback()
     }, 500)
     return () => clearTimeout(timeoutId)
-  }, [jsonInput, schemaInput, realTimeValidation, validateJsonCallback])
+  }, [debouncedJsonInput, debouncedSchemaInput, realTimeValidation, validateJsonCallback])
+
+  // Event handlers
+  const handleJsonChange = (value: string, fileName?: string) => {
+    setJsonInput(value)
+    if (fileName) setJsonFileName(fileName)
+    setJsonError(undefined)
+  }
+
+  const handleSchemaChange = (value: string, fileName?: string) => {
+    setSchemaInput(value)
+    if (fileName) setSchemaFileName(fileName)
+    setSchemaError(undefined)
+  }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: "json" | "schema") => {
     const file = event.target.files?.[0]
@@ -149,13 +190,9 @@ export function JsonSchemaValidatorEnhanced() {
     try {
       const content = await file.text()
       if (type === "json") {
-        setJsonInput(content)
-        setJsonFileName(file.name)
-        setJsonError(undefined)
+        handleJsonChange(content, file.name)
       } else {
-        setSchemaInput(content)
-        setSchemaFileName(file.name)
-        setSchemaError(undefined)
+        handleSchemaChange(content, file.name)
       }
     } catch (err) {
       const setError = type === "json" ? setJsonError : setSchemaError
@@ -166,38 +203,24 @@ export function JsonSchemaValidatorEnhanced() {
     }
   }
 
-  const clearInputs = () => {
+  const handleClearAll = () => {
     setJsonInput("")
     setSchemaInput("")
     setJsonFileName("")
     setSchemaFileName("")
     setValidationResult(null)
-    setSchemaVisualization(null)
     setJsonError(undefined)
     setSchemaError(undefined)
+    setExpandedErrors(new Set())
   }
 
-  const copyToClipboard = (text: string) => {
-    if (text) navigator.clipboard.writeText(text)
-  }
-
-  const downloadReport = () => {
-    if (!validationResult) return
-    const report = {
-      timestamp: new Date().toISOString(),
-      validation: validationResult,
-      options: validatorOptions,
-      files: { json: jsonFileName || "untitled.json", schema: schemaFileName || "untitled-schema.json" },
-    }
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `validation-report-${new Date().toISOString().split("T")[0]}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+  const loadExample = () => {
+    setJsonInput(EXAMPLE_JSON)
+    setSchemaInput(EXAMPLE_SCHEMA)
+    setJsonFileName("example.json")
+    setSchemaFileName("example-schema.json")
+    setJsonError(undefined)
+    setSchemaError(undefined)
   }
 
   const toggleErrorExpansion = (index: number) => {
@@ -208,12 +231,15 @@ export function JsonSchemaValidatorEnhanced() {
       return newSet
     })
   }
+
+  // Helper functions
   const getSeverityIcon = (severity: "error" | "warning") =>
     severity === "error" ? (
-      <AlertCircle className="h-4 w-4 text-red-500" />
+      <AlertCircle className="h-3 w-3 text-red-500" />
     ) : (
-      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      <AlertTriangle className="h-3 w-3 text-yellow-500" />
     )
+
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       required: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
@@ -227,6 +253,7 @@ export function JsonSchemaValidatorEnhanced() {
     }
     return colors[category] || colors.custom
   }
+
   const getDraftDisplayName = (draft: SchemaDraft) => {
     const names: Record<SchemaDraft, string> = {
       "draft-03": "Draft 3 (2010)",
@@ -240,441 +267,291 @@ export function JsonSchemaValidatorEnhanced() {
     return names[draft] || draft
   }
 
-  const renderJsonInputSection = (
-    type: "json" | "schema",
-    value: string,
-    onChange: (val: string, fileName?: string) => void,
-    fileName: string,
-    error?: string,
-    isLoading?: boolean,
-    placeholder: string,
-  ) => (
-    <Card className="tool-card flex flex-col h-full">
-      {" "}
-      {/* Ensure card takes full height of its grid cell */}
-      <CardHeader className="py-3 px-4 border-b">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            {type === "json" ? (
-              <FileJson className="h-5 w-5 text-muted-foreground" />
-            ) : (
-              <Shield className="h-5 w-5 text-muted-foreground" />
-            )}
-            <span className="truncate">{fileName || (type === "json" ? "JSON Data" : "JSON Schema")}</span>
-          </CardTitle>
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => copyToClipboard(value)}
-                  disabled={!value}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Copy</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                  <Label htmlFor={`${type}-upload`} className="cursor-pointer inline-flex items-center justify-center">
-                    <Upload className="h-3.5 w-3.5" />
-                  </Label>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Upload</TooltipContent>
-            </Tooltip>
-            <input
-              type="file"
-              id={`${type}-upload`}
-              accept=".json,.yaml,.yml"
-              className="hidden"
-              onChange={(e) => handleFileUpload(e, type)}
-            />
-          </div>
+  // Top controls
+  const topControls = (
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <Button
+          onClick={validateJsonCallback}
+          disabled={isValidating || (!jsonInput.trim() && !schemaInput.trim())}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Shield className="h-4 w-4 mr-2" />
+          {isValidating ? "Validating..." : "Validate"}
+        </Button>
+        <div className="flex items-center gap-2">
+          <Switch id="real-time" checked={realTimeValidation} onCheckedChange={setRealTimeValidation} />
+          <Label htmlFor="real-time" className="text-sm">
+            Real-time
+          </Label>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 flex-grow relative min-h-0">
-        <JsonInput
-          value={value}
-          onValueChange={onChange}
-          errorText={error}
-          isLoading={isLoading}
-          placeholder={placeholder}
-          responsiveHeight="100%"
-          className="h-full"
-          textAreaClassName="p-3 text-sm font-mono"
-          showLineNumbers={false} // Can be enabled if desired
-        />
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-center gap-2">
+        <Select
+          value={validatorOptions.draft}
+          onValueChange={(value: SchemaDraft) => setValidatorOptions({ ...validatorOptions, draft: value })}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Schema draft" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">Auto-detect</SelectItem>
+            <SelectItem value="draft-07">Draft 7</SelectItem>
+            <SelectItem value="2019-09">2019-09</SelectItem>
+            <SelectItem value="2020-12">2020-12</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" onClick={handleClearAll}>
+          <Trash2 className="h-4 w-4 mr-2" />
+          Clear All
+        </Button>
+      </div>
+    </div>
   )
+
+  // Left column (JSON)
+  const leftColumn = {
+    id: "json",
+    title: jsonFileName || "JSON Data",
+    icon: <FileJson className="h-4 w-4" />,
+    actions: (
+      <JsonInputActions
+        onCopy={() => jsonInput && navigator.clipboard.writeText(jsonInput)}
+        onUpload={() => document.getElementById("json-upload")?.click()}
+        disabled={!jsonInput}
+      />
+    ),
+    content: (
+      <SharedJsonInput
+        value={jsonInput}
+        onValueChange={handleJsonChange}
+        placeholder="Paste your JSON data here..."
+        error={jsonError}
+        isLoading={jsonLoading}
+        fileName={jsonFileName}
+        onFileUpload={(e) => handleFileUpload(e, "json")}
+        uploadId="json-upload"
+      />
+    ),
+  }
+
+  // Middle column (Schema)
+  const middleColumn = {
+    id: "schema",
+    title: schemaFileName || "JSON Schema",
+    icon: <Shield className="h-4 w-4" />,
+    actions: (
+      <JsonInputActions
+        onCopy={() => schemaInput && navigator.clipboard.writeText(schemaInput)}
+        onUpload={() => document.getElementById("schema-upload")?.click()}
+        disabled={!schemaInput}
+      />
+    ),
+    content: (
+      <SharedJsonInput
+        value={schemaInput}
+        onValueChange={handleSchemaChange}
+        placeholder="Paste your JSON Schema here..."
+        error={schemaError}
+        isLoading={schemaLoading}
+        fileName={schemaFileName}
+        onFileUpload={(e) => handleFileUpload(e, "schema")}
+        uploadId="schema-upload"
+      />
+    ),
+  }
+
+  // Right column (Results)
+  const rightColumn = {
+    id: "results",
+    title: "Validation Results",
+    icon: <Shield className="h-4 w-4" />,
+    content: (
+      <div className="h-full">
+        {!validationResult && !isValidating && (
+          <ColumnEmptyState
+            icon={<Info className="h-12 w-12" />}
+            title="Ready to Validate"
+            description="Input JSON and Schema to validate"
+            action={
+              <Button variant="outline" onClick={loadExample}>
+                <FileJson className="h-4 w-4 mr-2" />
+                Load Example
+              </Button>
+            }
+          />
+        )}
+
+        {isValidating && <ColumnLoadingState message="Validating JSON against schema..." />}
+
+        {validationResult && !isValidating && (
+          <div className="space-y-4">
+            {/* Summary */}
+            <div className="p-4 bg-muted/30 rounded-lg border">
+              {validationResult.isValid ? (
+                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="font-medium">JSON is valid</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="font-medium">
+                    {validationResult.errors.length} error{validationResult.errors.length !== 1 && "s"} found
+                  </span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="text-center p-2 bg-background rounded">
+                  <div className="text-lg font-bold text-red-600">{validationResult.summary.totalErrors}</div>
+                  <div className="text-xs text-muted-foreground">Errors</div>
+                </div>
+                <div className="text-center p-2 bg-background rounded">
+                  <div className="text-lg font-bold text-yellow-600">{validationResult.summary.totalWarnings}</div>
+                  <div className="text-xs text-muted-foreground">Warnings</div>
+                </div>
+                <div className="text-center p-2 bg-background rounded">
+                  <div className="text-lg font-bold text-blue-600">
+                    {validationResult.summary.validatedProperties}/{validationResult.summary.totalProperties}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Properties</div>
+                </div>
+                <div className="text-center p-2 bg-background rounded">
+                  <div className="text-lg font-bold text-green-600">
+                    {validationResult.summary.validationTime.toFixed(1)}ms
+                  </div>
+                  <div className="text-xs text-muted-foreground">Time</div>
+                </div>
+              </div>
+
+              {validationResult.detectedDraft && (
+                <div className="mt-3 text-xs">
+                  <span className="text-muted-foreground">Detected Schema: </span>
+                  <Badge variant="outline" className="ml-1">
+                    {getDraftDisplayName(validationResult.detectedDraft)}
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Settings */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Validation Options</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="strict-mode" className="text-xs">
+                    Strict Mode
+                  </Label>
+                  <Switch
+                    id="strict-mode"
+                    checked={validatorOptions.strict}
+                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, strict: c }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="validate-formats" className="text-xs">
+                    Validate Formats
+                  </Label>
+                  <Switch
+                    id="validate-formats"
+                    checked={validatorOptions.validateFormats}
+                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, validateFormats: c }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="coerce-types" className="text-xs">
+                    Coerce Types
+                  </Label>
+                  <Switch
+                    id="coerce-types"
+                    checked={!!validatorOptions.coerceTypes}
+                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, coerceTypes: c }))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Errors List */}
+            {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">
+                  Issues ({validationResult.errors.length + validationResult.warnings.length})
+                </h4>
+                <div className="space-y-1">
+                  {[...validationResult.errors, ...validationResult.warnings].map((error, index) => (
+                    <Collapsible
+                      key={index}
+                      open={expandedErrors.has(index)}
+                      onOpenChange={() => toggleErrorExpansion(index)}
+                    >
+                      <CollapsibleTrigger className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 flex-grow min-w-0">
+                          {getSeverityIcon(error.severity)}
+                          <div className="flex-1 truncate">
+                            <span className="font-medium truncate" title={error.message}>
+                              {error.message}
+                            </span>{" "}
+                            <span className="text-muted-foreground truncate">
+                              ({error.instancePath || "root"} - {error.keyword})
+                            </span>
+                          </div>
+                          <Badge className={`${getCategoryColor(error.category)} text-xs px-1 py-0.5`}>
+                            {error.category}
+                          </Badge>
+                        </div>
+                        {expandedErrors.has(index) ? (
+                          <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 ml-1 shrink-0" />
+                        )}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background space-y-1">
+                        {error.suggestion && (
+                          <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded">
+                            <span className="font-medium text-blue-700 dark:text-blue-300">💡 Suggestion:</span>{" "}
+                            {error.suggestion}
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-medium">Data Path:</span>{" "}
+                          <code className="bg-muted p-0.5 rounded break-all">
+                            {error.dataLocation || error.instancePath || "root"}
+                          </code>
+                        </div>
+                        <div>
+                          <span className="font-medium">Schema Path:</span>{" "}
+                          <code className="bg-muted p-0.5 rounded break-all">{error.schemaLocation || "root"}</code>
+                        </div>
+                        {error.lineNumber && (
+                          <div>
+                            <span className="font-medium">Location:</span> Line {error.lineNumber}
+                            {error.columnNumber && `, Col ${error.columnNumber}`}
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    ),
+  }
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col h-[calc(100vh-var(--app-header-height,60px)-var(--page-padding,16px))] p-4 gap-4 tool-container">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-grow min-h-0">
-          <div className="shrink-0">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-              <TabsTrigger value="validate" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Validate
-              </TabsTrigger>
-              <TabsTrigger value="visualize" className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Visualize
-              </TabsTrigger>
-              <TabsTrigger value="batch" className="flex items-center gap-2">
-                <Database className="h-4 w-4" />
-                Batch
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="flex-grow mt-4 overflow-hidden">
-            {" "}
-            {/* Container for TabsContent */}
-            <TabsContent value="validate" className="h-full flex flex-col gap-4">
-              <Card className="tool-card shrink-0">
-                <CardHeader className="py-3 px-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                    <CardTitle className="flex items-center gap-2 text-base">Validation Controls</CardTitle>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Switch id="real-time" checked={realTimeValidation} onCheckedChange={setRealTimeValidation} />
-                        <Label htmlFor="real-time" className="text-xs whitespace-nowrap">
-                          Real-time
-                        </Label>
-                      </div>
-                      <Select
-                        value={validatorOptions.draft}
-                        onValueChange={(value: SchemaDraft) =>
-                          setValidatorOptions({ ...validatorOptions, draft: value })
-                        }
-                      >
-                        <SelectTrigger className="w-full sm:w-36 h-8 text-xs zinc-input">
-                          <SelectValue placeholder="Schema draft" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="auto">Auto-detect</SelectItem>
-                          <SelectItem value="draft-07">Draft 7</SelectItem>
-                          <SelectItem value="2019-09">2019-09</SelectItem>
-                          <SelectItem value="2020-12">2020-12</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        onClick={validateJsonCallback}
-                        disabled={isValidating || !jsonInput.trim() || !schemaInput.trim()}
-                        size="sm"
-                        className="bg-green-600 hover:bg-green-700 h-8 text-xs"
-                      >
-                        {isValidating ? (
-                          <Zap className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Shield className="h-4 w-4 mr-1" />
-                        )}
-                        Validate
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={clearInputs} className="h-8 text-xs">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-grow min-h-0">
-                {renderJsonInputSection(
-                  "json",
-                  jsonInput,
-                  (val, fName) => {
-                    setJsonInput(val)
-                    if (fName) setJsonFileName(fName)
-                    setJsonError(undefined)
-                  },
-                  jsonFileName,
-                  jsonError,
-                  jsonLoading,
-                  "Paste JSON data...",
-                )}
-                {renderJsonInputSection(
-                  "schema",
-                  schemaInput,
-                  (val, fName) => {
-                    setSchemaInput(val)
-                    if (fName) setSchemaFileName(fName)
-                    setJsonError(undefined)
-                  },
-                  schemaFileName,
-                  schemaError,
-                  schemaLoading,
-                  "Paste JSON Schema...",
-                )}
-              </div>
-
-              {validationResult && (
-                <Card className="tool-card shrink-0 mt-4">
-                  {" "}
-                  {/* Results card, shrink to content */}
-                  <CardHeader className="py-3 px-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-base">
-                        {validationResult.isValid ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-5 w-5 text-red-500" />
-                        )}
-                        Validation Results
-                      </CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={validationResult.isValid ? "default" : "destructive"}
-                          className={`text-xs ${validationResult.isValid ? "zinc-status-success" : "zinc-status-error"}`}
-                        >
-                          {validationResult.isValid ? "Valid" : "Invalid"}
-                        </Badge>
-                        {validationResult.detectedDraft && (
-                          <Badge variant="outline" className="text-xs">
-                            {getDraftDisplayName(validationResult.detectedDraft)}
-                          </Badge>
-                        )}
-                        <Button variant="outline" size="sm" onClick={downloadReport} className="h-8 text-xs">
-                          <Download className="h-3.5 w-3.5 mr-1" />
-                          Export Report
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-3 text-xs">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-                      {/* Summary items */}
-                      <div className="text-center p-2 bg-muted/30 rounded">
-                        <div className="text-lg font-bold text-red-600">{validationResult.summary.totalErrors}</div>
-                        <div className="text-muted-foreground">Errors</div>
-                      </div>
-                      <div className="text-center p-2 bg-muted/30 rounded">
-                        <div className="text-lg font-bold text-yellow-600">
-                          {validationResult.summary.totalWarnings}
-                        </div>
-                        <div className="text-muted-foreground">Warnings</div>
-                      </div>
-                      <div className="text-center p-2 bg-muted/30 rounded">
-                        <div className="text-lg font-bold text-blue-600">
-                          {validationResult.summary.validatedProperties}/{validationResult.summary.totalProperties}
-                        </div>
-                        <div className="text-muted-foreground">Properties</div>
-                      </div>
-                      <div className="text-center p-2 bg-muted/30 rounded">
-                        <div className="text-lg font-bold text-green-600">
-                          {validationResult.summary.validationTime.toFixed(1)}ms
-                        </div>
-                        <div className="text-muted-foreground">Time</div>
-                      </div>
-                    </div>
-                    {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
-                      <ScrollArea className="h-48 max-h-64 zinc-scrollbar pr-1">
-                        {" "}
-                        {/* Max height for error list */}
-                        <div className="space-y-1.5">
-                          {[...validationResult.errors, ...validationResult.warnings].map((error, index) => (
-                            <Collapsible
-                              key={index}
-                              open={expandedErrors.has(index)}
-                              onOpenChange={() => toggleErrorExpansion(index)}
-                            >
-                              <CollapsibleTrigger className="w-full text-left p-1.5 rounded hover:bg-accent transition-colors border flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-1.5 flex-grow min-w-0">
-                                  {getSeverityIcon(error.severity)}
-                                  <div className="flex-1 truncate">
-                                    <span className="font-medium truncate" title={error.message}>
-                                      {error.message}
-                                    </span>{" "}
-                                    <span className="text-muted-foreground truncate">
-                                      ({error.instancePath || "root"} - {error.keyword})
-                                    </span>
-                                  </div>
-                                  <Badge className={`${getCategoryColor(error.category)} text-xs px-1 py-0.5`}>
-                                    {error.category}
-                                  </Badge>
-                                </div>
-                                {expandedErrors.has(index) ? (
-                                  <ChevronDown className="h-3.5 w-3.5 ml-1 shrink-0" />
-                                ) : (
-                                  <ChevronRight className="h-3.5 w-3.5 ml-1 shrink-0" />
-                                )}
-                              </CollapsibleTrigger>
-                              <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b bg-background space-y-1">
-                                {error.suggestion && (
-                                  <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded">
-                                    <span className="font-medium text-blue-700 dark:text-blue-300">💡 Suggestion:</span>{" "}
-                                    {error.suggestion}
-                                  </div>
-                                )}
-                                <div>
-                                  <span className="font-medium">Data Path:</span>{" "}
-                                  <code className="bg-muted p-0.5 rounded break-all">
-                                    {error.dataLocation || error.instancePath || "root"}
-                                  </code>
-                                </div>
-                                <div>
-                                  <span className="font-medium">Schema Path:</span>{" "}
-                                  <code className="bg-muted p-0.5 rounded break-all">
-                                    {error.schemaLocation || "root"}
-                                  </code>
-                                </div>
-                                {error.lineNumber && (
-                                  <div>
-                                    <span className="font-medium">Location:</span> Line {error.lineNumber}
-                                    {error.columnNumber && `, Col ${error.columnNumber}`}
-                                  </div>
-                                )}
-                              </CollapsibleContent>
-                            </Collapsible>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-            <TabsContent value="visualize" className="h-full overflow-y-auto zinc-scrollbar p-1">
-              {schemaVisualization ? (
-                <SchemaVisualizationComponent schema={schemaVisualization} onPropertySelect={setSelectedProperty} />
-              ) : (
-                <Card className="tool-card h-full">
-                  <CardContent className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                      <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Provide a valid JSON schema to visualize its structure.</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-            <TabsContent value="batch" className="h-full overflow-y-auto zinc-scrollbar p-1">
-              <BatchValidation validator={validator} schemaInput={schemaInput} validatorOptions={validatorOptions} />
-            </TabsContent>
-            <TabsContent value="settings" className="h-full overflow-y-auto zinc-scrollbar p-1">
-              <Card className="tool-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Settings className="h-5 w-5" /> Validation Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-sm">Schema Options</h3>
-                      <div className="space-y-3 text-xs">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="strict-mode">Strict Mode</Label>
-                          <Switch
-                            id="strict-mode"
-                            checked={validatorOptions.strict}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, strict: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="all-errors">Show All Errors</Label>
-                          <Switch
-                            id="all-errors"
-                            checked={validatorOptions.allErrors}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, allErrors: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="verbose">Verbose Output</Label>
-                          <Switch
-                            id="verbose"
-                            checked={validatorOptions.verbose}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, verbose: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="validate-formats">Validate Formats</Label>
-                          <Switch
-                            id="validate-formats"
-                            checked={validatorOptions.validateFormats}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, validateFormats: c }))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-sm">Data Processing</h3>
-                      <div className="space-y-3 text-xs">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="use-defaults">Use Default Values</Label>
-                          <Switch
-                            id="use-defaults"
-                            checked={validatorOptions.useDefaults}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, useDefaults: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="coerce-types">Coerce Types</Label>
-                          <Switch
-                            id="coerce-types"
-                            checked={!!validatorOptions.coerceTypes}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, coerceTypes: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="resolve-refs">Resolve External Refs</Label>
-                          <Switch
-                            id="resolve-refs"
-                            checked={validatorOptions.resolveExternalRefs}
-                            onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, resolveExternalRefs: c }))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-sm">Additional Properties</h3>
-                    <Select
-                      value={String(validatorOptions.removeAdditional)}
-                      onValueChange={(v) =>
-                        setValidatorOptions((o) => ({
-                          ...o,
-                          removeAdditional: v === "true" ? true : v === "false" ? false : (v as any),
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="zinc-input text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="false">Keep additional</SelectItem>
-                        <SelectItem value="true">Remove additional</SelectItem>
-                        <SelectItem value="all">Remove all additional</SelectItem>
-                        <SelectItem value="failing">Remove failing additional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <Button
-                      onClick={validateJsonCallback}
-                      className="w-full bg-green-600 hover:bg-green-700 text-xs h-9"
-                    >
-                      <Shield className="h-4 w-4 mr-1" /> Apply Settings & Validate
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </div>
-        </Tabs>
-      </div>
+      <SharedThreeColumnLayout
+        toolTitle="JSON Schema Validator"
+        toolIcon={<Shield className="h-6 w-6" />}
+        toolDescription="Validate JSON data against JSON Schema"
+        leftColumn={leftColumn}
+        middleColumn={middleColumn}
+        rightColumn={rightColumn}
+        topControls={topControls}
+      />
     </TooltipProvider>
   )
 }
