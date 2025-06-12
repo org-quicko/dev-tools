@@ -90,12 +90,118 @@ const PRESET_EXAMPLES = {
 
 export function JsonComparator() {
   // State
-  const [json1, setJson1] = useState("")
+  const [json1, setJson1] = useState(`{
+  "data": {
+    "userProfile": {
+      "personalInfo": {
+        "name": {
+          "firstName": "John",
+          "lastName": "Doe"
+        },
+        "address": {
+          "street": "123 Main Street",
+          "city": "Anytown",
+          "state": "CA",
+          "zipCode": "90210",
+          "country": "USA",
+          "coordinates": {
+            "latitude": 34.0522,
+            "longitude": -118.2437
+          }
+        },
+        "contact": {
+          "email": "john.doe@example.com",
+          "phone": {
+            "home": "555-123-4567",
+            "work": "555-987-6543"
+          }
+        }
+      },
+      "preferences": {
+        "theme": "dark",
+        "notifications": {
+          "email": true,
+          "sms": false,
+          "push": true
+        },
+        "language": "en-US",
+        "privacySettings": {
+          "dataSharing": false,
+          "locationTracking": true,
+          "adPersonalization": false
+        }
+      },
+      "accountStatus": {
+        "isActive": true,
+        "lastLogin": "2025-06-12T10:00:00Z",
+        "subscription": {
+          "type": "premium",
+          "startDate": "2024-01-01",
+          "endDate": "2025-01-01",
+          "autoRenew": true
+        }
+      }
+    }
+  }
+}`)
   const [json1Name, setJson1Name] = useState("")
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
 
-  const [json2, setJson2] = useState("")
+  const [json2, setJson2] = useState(`{
+  "data": {
+    "userProfile": {
+      "personalInfo": {
+        "name": {
+          "firstName": "Jane",
+          "lastName": "Smith"
+        },
+        "address": {
+          "street": "456 Oak Avenue",
+          "city": "Otherville",
+          "state": "NY",
+          "zipCode": "10001",
+          "country": "USA",
+          "coordinates": {
+            "latitude": 40.7128,
+            "longitude": -74.0060
+          }
+        },
+        "contact": {
+          "email": "jane.smith@example.com",
+          "phone": {
+            "home": "555-111-2222",
+            "mobile": "555-333-4444"
+          }
+        }
+      },
+      "preferences": {
+        "theme": "light",
+        "notifications": {
+          "email": true,
+          "sms": true,
+          "push": false
+        },
+        "language": "es-ES",
+        "privacySettings": {
+          "dataSharing": true,
+          "locationTracking": false,
+          "adPersonalization": true
+        }
+      },
+      "accountStatus": {
+        "isActive": false,
+        "lastLogin": "2025-06-12T11:30:00Z",
+        "subscription": {
+          "type": "basic",
+          "startDate": "2023-07-15",
+          "endDate": "2024-07-15",
+          "autoRenew": false
+        }
+      }
+    }
+  }
+}`)
   const [json2Name, setJson2Name] = useState("")
   const [json2Error, setJson2Error] = useState<string | undefined>(undefined)
   const [json2Loading, setJson2Loading] = useState(false)
