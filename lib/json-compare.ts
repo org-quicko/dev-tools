@@ -1,4 +1,12 @@
-import type { JsonComparisonResult, JsonDifference, ComparisonSettings } from "@/types/comparison"
+import type { JsonComparisonResult, JsonDifference } from "@/types/comparison"
+
+export interface ComparisonSettings {
+  indentation: number
+  sortKeys: boolean
+  ignoreOrder: boolean
+  fuzzyMatch: boolean
+  ignoreCase: boolean
+}
 
 export async function compareJsons(
   json1: string,
