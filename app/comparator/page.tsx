@@ -3,8 +3,10 @@ import { JsonProvider } from "@/contexts/json-context"
 
 export default function ComparatorPage() {
   return (
-    <JsonProvider>
-      <JsonComparator />
-    </JsonProvider>
+    <div className="w-full h-full">
+      <JsonProvider>
+        <JsonComparator />
+      </JsonProvider>
+    </div>
   )
 }

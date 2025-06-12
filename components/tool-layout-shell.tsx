@@ -36,10 +36,10 @@ export function ToolLayoutShell({
   children,
 }: ToolLayoutShellProps) {
   return (
-    <div className={cn("flex flex-col h-full min-h-0", className)}>
+    <div className={cn("flex flex-col h-full min-h-0 w-full", className)}>
       {/* Tool Header - Fixed Height */}
-      <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-6 py-4">
+      <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
+        <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               {icon}
@@ -54,17 +54,17 @@ export function ToolLayoutShell({
 
       {/* Sticky Controls - Fixed Height */}
       {stickyControls && (
-        <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-          <div className="px-6 py-3">{stickyControls}</div>
+        <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 w-full">
+          <div className="px-4 sm:px-6 py-3">{stickyControls}</div>
         </div>
       )}
 
       {/* Main Content Area - Flexible Height */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={onTabChange} className="flex flex-col h-full">
+      <div className="flex-1 min-h-0 overflow-hidden w-full">
+        <Tabs value={activeTab} onValueChange={onTabChange} className="flex flex-col h-full w-full">
           {/* Tab Navigation - Fixed Height */}
-          <div className="shrink-0 border-b bg-background">
-            <div className="px-6">
+          <div className="shrink-0 border-b bg-background w-full">
+            <div className="px-4 sm:px-6">
               <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
                 {tabs.map((tab) => (
                   <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2">
@@ -77,14 +77,14 @@ export function ToolLayoutShell({
           </div>
 
           {/* Tab Content Area - Flexible Height with Stable Container */}
-          <div className="flex-1 min-h-0 relative">
+          <div className="flex-1 min-h-0 relative w-full">
             {tabs.map((tab) => (
               <TabsContent
                 key={tab.id}
                 value={tab.id}
-                className="absolute inset-0 m-0 p-6 overflow-y-auto zinc-scrollbar data-[state=inactive]:pointer-events-none data-[state=inactive]:opacity-0 transition-opacity duration-200"
+                className="absolute inset-0 m-0 p-3 sm:p-4 md:p-6 overflow-y-auto zinc-scrollbar data-[state=inactive]:pointer-events-none data-[state=inactive]:opacity-0 transition-opacity duration-200 w-full"
               >
-                <div className="h-full min-h-[600px]">{tab.content}</div>
+                <div className="h-full min-h-[600px] w-full">{tab.content}</div>
               </TabsContent>
             ))}
           </div>
@@ -99,7 +99,7 @@ export function ToolLayoutShell({
 
 // Shared layout components for consistent structure
 export function ToolGrid({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("grid gap-6 h-full min-h-0", className)}>{children}</div>
+  return <div className={cn("grid gap-3 sm:gap-4 md:gap-6 h-full min-h-0 w-full", className)}>{children}</div>
 }
 
 export function ToolPanel({
@@ -116,7 +116,7 @@ export function ToolPanel({
   actions?: React.ReactNode
 }) {
   return (
-    <Card className={cn("flex flex-col h-full min-h-0 tool-card", className)}>
+    <Card className={cn("flex flex-col h-full min-h-0 w-full tool-card", className)}>
       {(title || actions) && (
         <CardHeader className="shrink-0 py-3 px-4 border-b">
           <div className="flex items-center justify-between">
@@ -130,7 +130,7 @@ export function ToolPanel({
           </div>
         </CardHeader>
       )}
-      <CardContent className="flex-1 min-h-0 p-0">{children}</CardContent>
+      <CardContent className="flex-1 min-h-0 p-0 w-full">{children}</CardContent>
     </Card>
   )
 }
@@ -147,7 +147,7 @@ export function ToolEmptyState({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-8">
+    <div className="flex flex-col items-center justify-center h-full w-full text-center p-4 sm:p-8">
       <div className="mb-4 text-muted-foreground">{icon}</div>
       <h3 className="text-lg font-medium mb-2">{title}</h3>
       {description && <p className="text-sm text-muted-foreground mb-4 max-w-md">{description}</p>}
@@ -166,11 +166,11 @@ export function StickyResultsPanel({
   className?: string
 }) {
   return (
-    <div className={cn("flex flex-col h-full min-h-0", className)}>
+    <div className={cn("flex flex-col h-full min-h-0 w-full", className)}>
       {/* Sticky Summary */}
-      <div className="shrink-0 sticky top-0 bg-background/95 backdrop-blur border-b z-10">{summary}</div>
+      <div className="shrink-0 sticky top-0 bg-background/95 backdrop-blur border-b z-10 w-full">{summary}</div>
       {/* Scrollable Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto zinc-scrollbar">{children}</div>
+      <div className="flex-1 min-h-0 overflow-y-auto zinc-scrollbar w-full">{children}</div>
     </div>
   )
 }

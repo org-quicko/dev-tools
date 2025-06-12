@@ -353,7 +353,7 @@ export function JsonComparator() {
 
   // Tab content
   const compareContent = (
-    <ToolGrid className="grid-cols-1 lg:grid-cols-3">
+    <ToolGrid className="grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 w-full">
       <ToolJsonInput
         title="JSON 1"
         icon={<FileJson className="h-5 w-5" />}
@@ -371,6 +371,7 @@ export function JsonComparator() {
         onDownload={() => handleDownload("json1")}
         onFileUpload={(e) => handleFileUpload(e, "json1")}
         uploadId="json1-upload"
+        className="w-full"
       />
 
       <ToolJsonInput
@@ -390,10 +391,11 @@ export function JsonComparator() {
         onDownload={() => handleDownload("json2")}
         onFileUpload={(e) => handleFileUpload(e, "json2")}
         uploadId="json2-upload"
+        className="w-full"
       />
 
       {/* Results Panel */}
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col h-full min-h-0 w-full">
         {!comparisonResult && !isComparing && (
           <ToolEmptyState
             icon={<Info className="h-12 w-12" />}
@@ -419,7 +421,7 @@ export function JsonComparator() {
         {comparisonResult && !isComparing && (
           <StickyResultsPanel
             summary={
-              <div className="p-4">
+              <div className="p-4 w-full">
                 <div className="flex items-center gap-2 mb-3">
                   {comparisonResult.areEqual ? (
                     <>
@@ -457,14 +459,16 @@ export function JsonComparator() {
                 </div>
               </div>
             }
+            className="w-full"
           >
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-2 w-full">
               {summary.total > 0 ? (
                 comparisonResult.differences.map((diff, index) => (
                   <Collapsible
                     key={`${diff.path}-${index}`}
                     open={expandedDiffs.has(diff.path)}
                     onOpenChange={() => toggleDiffExpansion(diff.path)}
+                    className="w-full"
                   >
                     <CollapsibleTrigger
                       className={cn(
@@ -484,7 +488,7 @@ export function JsonComparator() {
                         <ChevronRight className="h-4 w-4" />
                       )}
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="p-2.5 text-xs border border-t-0 rounded-b-md bg-background">
+                    <CollapsibleContent className="p-2.5 text-xs border border-t-0 rounded-b-md bg-background w-full">
                       <p className="font-medium mb-1 capitalize">
                         {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
                       </p>
@@ -771,7 +775,7 @@ export function JsonComparator() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         stickyControls={stickyControls}
-        className="h-[100vh]"
+        className="h-[calc(100vh-var(--app-header-height,60px))] w-full"
       />
     </TooltipProvider>
   )

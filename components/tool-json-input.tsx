@@ -158,16 +158,16 @@ export function ToolJsonInput({
   )
 
   return (
-    <ToolPanel title="" className={cn("relative", className)} actions={actions}>
+    <ToolPanel title="" className={cn("relative w-full", className)} actions={actions}>
       {/* Custom header with title and badge */}
-      <div className="shrink-0 py-3 px-4 border-b bg-background">
+      <div className="shrink-0 py-3 px-4 border-b bg-background w-full">
         <div className="text-base font-medium">{titleWithBadge}</div>
       </div>
 
       {/* Input area with drag and drop */}
       <div
         className={cn(
-          "flex-1 min-h-0 relative",
+          "flex-1 min-h-0 relative w-full",
           isDragOver && "bg-primary/5 border-primary",
           readOnly && "bg-muted/30",
         )}
@@ -195,7 +195,7 @@ export function ToolJsonInput({
           side={side}
           highlightedPath={highlightedPath}
           responsiveHeight="100%"
-          className="h-full"
+          className="h-full w-full"
           textAreaClassName="p-4"
           readOnly={readOnly}
         />
@@ -203,7 +203,7 @@ export function ToolJsonInput({
 
       {/* Error display */}
       {error && (
-        <div className="shrink-0 p-2">
+        <div className="shrink-0 p-2 w-full">
           <Alert variant="destructive">
             <AlertDescription className="text-xs">{error}</AlertDescription>
           </Alert>
