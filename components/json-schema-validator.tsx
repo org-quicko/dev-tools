@@ -352,7 +352,7 @@ export function JsonSchemaValidator() {
                       value={jsonInput}
                       onChange={(e) => setJsonInput(e.target.value)}
                       placeholder="Paste your JSON data here..."
-                      className="w-full h-80 p-3 font-mono text-sm border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                      className="zinc-textarea h-80 font-mono"
                     />
 
                     {!jsonInput && (
@@ -408,7 +408,7 @@ export function JsonSchemaValidator() {
                       value={schemaInput}
                       onChange={(e) => setSchemaInput(e.target.value)}
                       placeholder="Paste your JSON schema here..."
-                      className="w-full h-80 p-3 font-mono text-sm border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                      className="zinc-textarea h-80 font-mono"
                     />
 
                     {!schemaInput && (
@@ -437,7 +437,7 @@ export function JsonSchemaValidator() {
                   onClick={validateJson}
                   disabled={!jsonInput.trim() || !schemaInput.trim() || isValidating}
                   size="lg"
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:opacity-90"
+                  className="zinc-button-primary"
                 >
                   <Shield className="h-4 w-4 mr-2" />
                   {isValidating ? "Validating..." : "Validate JSON"}

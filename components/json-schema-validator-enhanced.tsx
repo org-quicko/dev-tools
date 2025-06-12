@@ -309,11 +309,7 @@ export function JsonSchemaValidatorEnhanced() {
                           <SelectItem value="2020-12">Draft 2020-12</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button
-                        onClick={validateJson}
-                        disabled={isValidating}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
+                      <Button onClick={validateJson} disabled={isValidating} className="zinc-button-primary">
                         {isValidating ? (
                           <>
                             <Zap className="h-4 w-4 mr-2 animate-spin" />
@@ -384,7 +380,7 @@ export function JsonSchemaValidatorEnhanced() {
                       value={jsonInput}
                       onChange={(e) => setJsonInput(e.target.value)}
                       placeholder="Paste your JSON data here or upload a file..."
-                      className="w-full h-96 p-4 border rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-800 dark:border-gray-700"
+                      className="zinc-textarea h-96 font-mono"
                     />
                   </CardContent>
                 </Card>
@@ -436,7 +432,7 @@ export function JsonSchemaValidatorEnhanced() {
                       value={schemaInput}
                       onChange={(e) => setSchemaInput(e.target.value)}
                       placeholder="Paste your JSON Schema here or upload a file..."
-                      className="w-full h-96 p-4 border rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-800 dark:border-gray-700"
+                      className="zinc-textarea h-96 font-mono"
                     />
                   </CardContent>
                 </Card>
@@ -771,7 +767,7 @@ export function JsonSchemaValidatorEnhanced() {
                   </div>
 
                   <div className="pt-4 border-t">
-                    <Button onClick={validateJson} className="w-full bg-green-600 hover:bg-green-700">
+                    <Button onClick={validateJson} className="zinc-button-primary w-full">
                       <Shield className="h-4 w-4 mr-2" />
                       Apply Settings & Validate
                     </Button>

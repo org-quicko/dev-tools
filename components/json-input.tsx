@@ -141,7 +141,7 @@ export function JsonInput({
     const differences = comparisonResult?.differences || []
 
     return (
-      <div className="json-content-container modern-scrollbar" ref={scrollAreaRef}>
+      <div className="json-content-container zinc-scrollbar" ref={scrollAreaRef}>
         <div className="json-synchronized-scroll">
           <div className="json-line-numbers-column">
             {lines.map((_, index) => (
@@ -231,7 +231,7 @@ export function JsonInput({
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder={placeholder || `Paste your ${target === 1 ? "first" : "second"} JSON here...`}
-              className="w-full h-full p-3 font-mono text-sm border-0 resize-none focus:outline-none focus:ring-1 focus:ring-primary bg-transparent modern-scrollbar json-textarea"
+              className="zinc-textarea h-full border-0 bg-transparent zinc-scrollbar json-textarea"
               style={{ lineHeight: "1.5", whiteSpace: "pre", wordWrap: "normal" }}
               aria-label={`JSON input ${target}`}
             />

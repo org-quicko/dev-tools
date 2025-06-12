@@ -190,7 +190,7 @@ export function JsonFormatter() {
                   </Button>
                 </Link>
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                     <FileText className="h-4 w-4 text-white" />
                   </div>
                   <div>
@@ -253,7 +253,7 @@ export function JsonFormatter() {
                     value={jsonInput}
                     onChange={(e) => handleInputChange(e.target.value)}
                     placeholder="Paste your JSON here or upload a file..."
-                    className="w-full h-96 p-3 font-mono text-sm border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary bg-background"
+                    className="zinc-textarea h-96 font-mono"
                   />
 
                   {!jsonInput && (
@@ -311,7 +311,7 @@ export function JsonFormatter() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <pre className="w-full h-96 p-3 font-mono text-sm border rounded-lg overflow-auto bg-muted/30">
+                  <pre className="zinc-scrollbar w-full h-96 p-3 font-mono text-sm border rounded-lg overflow-auto bg-muted/30">
                     {formattedJson || "Formatted JSON will appear here..."}
                   </pre>
                 </CardContent>
