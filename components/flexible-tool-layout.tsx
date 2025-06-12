@@ -38,8 +38,7 @@ export function FlexibleToolLayout({ columns, topControls, className }: Flexible
           <div key={column.id} className="flex flex-col h-full min-h-0 w-full">
             {/* Column Header */}
             <div className="shrink-0 border-b bg-muted/30">
-              <div className="px-3 sm:px-4 py-4.5 py-4 py-[16p] py-[16] py-[1] py-4 py-4 py-0 py-4 py-4 py-0">
-                <div className="flex items-center justify-between">
+              <div className="px-3 sm:px-4 py-4.5 py-4 py-[16p] py-[16] py-[1] py-4 py-4 py-4 py-4 py-5             <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     {column.icon}
                     <h3 className="font-medium text-sm truncate">{column.title}</h3>
