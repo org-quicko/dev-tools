@@ -27,7 +27,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { JsonInput } from "@/components/json-input"
 import { useJsonContext } from "@/contexts/json-context"
-import { compareJson, type JsonComparisonResult, type Difference } from "@/lib/json-compare"
+import { compareJsons, type JsonComparisonResult, type Difference } from "@/lib/json-compare" // Corrected import
 import { formatJsonError, validateJson } from "@/lib/json-validation"
 import { useDebounce } from "@/hooks/use-debounce"
 
@@ -43,7 +43,7 @@ export function JsonComparator() {
     ignoreValues: false,
   })
   const [activeTab, setActiveTab] = useState("compare")
-  const [expandedDiffs, setExpandedDiffs] = useState<Set<number>>(new Set())
+  const [expandedDiffs, setExpandedDiffs] = new Set<number>(new Set())
   const [highlightedPath, setHighlightedPath] = useState<string | null>(null)
 
   const debouncedJson1 = useDebounce(state.json1, 500)
@@ -57,7 +57,7 @@ export function JsonComparator() {
 
     setIsComparing(true)
     try {
-      const result = compareJson(debouncedJson1, debouncedJson2, comparisonOptions)
+      const result = compareJsons(debouncedJson1, debouncedJson2, comparisonOptions) // Corrected function call
       setComparisonResult(result)
       setError("json1", result.errors.json1 || undefined)
       setError("json2", result.errors.json2 || undefined)
