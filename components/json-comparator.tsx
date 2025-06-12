@@ -2,11 +2,13 @@
 
 import type React from "react"
 import { useState, useCallback, useEffect, useMemo } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   GitCompare,
   Settings2,
@@ -21,10 +23,11 @@ import {
   RotateCcw,
   Zap,
   Trash2,
+  Upload,
+  Copy,
 } from "lucide-react"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { ToolLayoutShell, ToolGrid, ToolEmptyState, StickyResultsPanel } from "./tool-layout-shell"
-import { ToolJsonInput } from "./tool-json-input"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { JsonInput } from "./json-input"
 import { compareJsons, type ComparisonSettings } from "@/lib/json-compare"
 import { prettifyJson } from "@/lib/json-utils"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -158,7 +161,6 @@ export function JsonComparator() {
 
   const [expandedDiffs, setExpandedDiffs] = useState<Set<string>>(new Set())
   const [highlightedPath, setHighlightedPath] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState("compare")
 
   const debouncedJson1 = useDebounce(json1, 500)
   const debouncedJson2 = useDebounce(json2, 500)
@@ -296,7 +298,6 @@ export function JsonComparator() {
     setJson2Name(`${preset.name} - JSON 2`)
     setJson1Error(undefined)
     setJson2Error(undefined)
-    setActiveTab("compare")
   }
 
   const toggleDiffExpansion = (path: string) => {
@@ -324,459 +325,430 @@ export function JsonComparator() {
     }
   }, [comparisonResult])
 
-  // Sticky controls
-  const stickyControls = (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <Button
-          onClick={performComparison}
-          disabled={isComparing || (!json1.trim() && !json2.trim())}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <GitCompare className="h-4 w-4 mr-2" />
-          {isComparing ? "Comparing..." : "Compare"}
-        </Button>
-        <div className="flex items-center gap-2">
-          <Switch id="realtime-compare" checked={realTimeCompare} onCheckedChange={setRealTimeCompare} />
-          <Label htmlFor="realtime-compare" className="text-sm">
-            Real-time
-          </Label>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={handleClearAll}>
-          <Trash2 className="h-4 w-4 mr-2" /> Clear All
-        </Button>
-      </div>
-    </div>
-  )
-
-  // Tab content
-  const compareContent = (
-    <ToolGrid className="grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 w-full">
-      <ToolJsonInput
-        title="JSON 1"
-        icon={<FileJson className="h-5 w-5" />}
-        value={json1}
-        onValueChange={handleJson1Change}
-        fileName={json1Name}
-        error={json1Error}
-        isLoading={json1Loading}
-        placeholder="Paste your first JSON here..."
-        showLineNumbers={true}
-        comparisonResult={jsonInputComparisonResultProp}
-        side="left"
-        highlightedPath={highlightedPath}
-        onFormat={() => handleFormatJson("json1")}
-        onDownload={() => handleDownload("json1")}
-        onFileUpload={(e) => handleFileUpload(e, "json1")}
-        uploadId="json1-upload"
-        className="w-full"
-      />
-
-      <ToolJsonInput
-        title="JSON 2"
-        icon={<FileJson className="h-5 w-5" />}
-        value={json2}
-        onValueChange={handleJson2Change}
-        fileName={json2Name}
-        error={json2Error}
-        isLoading={json2Loading}
-        placeholder="Paste your second JSON here..."
-        showLineNumbers={true}
-        comparisonResult={jsonInputComparisonResultProp}
-        side="right"
-        highlightedPath={highlightedPath}
-        onFormat={() => handleFormatJson("json2")}
-        onDownload={() => handleDownload("json2")}
-        onFileUpload={(e) => handleFileUpload(e, "json2")}
-        uploadId="json2-upload"
-        className="w-full"
-      />
-
-      {/* Results Panel */}
-      <div className="flex flex-col h-full min-h-0 w-full">
-        {!comparisonResult && !isComparing && (
-          <ToolEmptyState
-            icon={<Info className="h-12 w-12" />}
-            title="Ready to Compare"
-            description="Input JSON in both panels to see differences"
-            action={
-              <Button variant="outline" onClick={() => loadPreset("basic")}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Load Example
-              </Button>
-            }
-          />
-        )}
-
-        {isComparing && (
-          <ToolEmptyState
-            icon={<GitCompare className="h-12 w-12 animate-pulse" />}
-            title="Comparing..."
-            description="Analyzing JSON differences"
-          />
-        )}
-
-        {comparisonResult && !isComparing && (
-          <StickyResultsPanel
-            summary={
-              <div className="p-4 w-full">
-                <div className="flex items-center gap-2 mb-3">
-                  {comparisonResult.areEqual ? (
-                    <>
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span className="font-medium text-sm text-green-600 dark:text-green-400">
-                        JSON objects are identical
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-5 w-5 text-orange-500" />
-                      <span className="font-medium text-sm text-orange-600 dark:text-orange-400">
-                        {summary.total} differences found
-                      </span>
-                    </>
-                  )}
-                </div>
-                <div className="grid grid-cols-4 gap-2 text-xs">
-                  <div className="text-center p-2 bg-muted/30 rounded">
-                    <div className="font-bold text-blue-600">{summary.modifications}</div>
-                    <div className="text-muted-foreground">Modified</div>
-                  </div>
-                  <div className="text-center p-2 bg-muted/30 rounded">
-                    <div className="font-bold text-green-600">{summary.additions}</div>
-                    <div className="text-muted-foreground">Added</div>
-                  </div>
-                  <div className="text-center p-2 bg-muted/30 rounded">
-                    <div className="font-bold text-red-600">{summary.deletions}</div>
-                    <div className="text-muted-foreground">Deleted</div>
-                  </div>
-                  <div className="text-center p-2 bg-muted/30 rounded">
-                    <div className="font-bold text-gray-600">{summary.unchanged}</div>
-                    <div className="text-muted-foreground">Unchanged</div>
-                  </div>
-                </div>
-              </div>
-            }
-            className="w-full"
-          >
-            <div className="p-4 space-y-2 w-full">
-              {summary.total > 0 ? (
-                comparisonResult.differences.map((diff, index) => (
-                  <Collapsible
-                    key={`${diff.path}-${index}`}
-                    open={expandedDiffs.has(diff.path)}
-                    onOpenChange={() => toggleDiffExpansion(diff.path)}
-                    className="w-full"
-                  >
-                    <CollapsibleTrigger
-                      className={cn(
-                        "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between",
-                        highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
-                      )}
-                    >
-                      <div className="flex items-center gap-2 text-xs truncate">
-                        <DiffTypeIcon type={diff.type} />
-                        <span className="font-mono truncate" title={diff.path || "Root"}>
-                          {diff.path || "Root"}
-                        </span>
-                      </div>
-                      {expandedDiffs.has(diff.path) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="p-2.5 text-xs border border-t-0 rounded-b-md bg-background w-full">
-                      <p className="font-medium mb-1 capitalize">
-                        {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
-                      </p>
-                      {diff.message && <p className="text-muted-foreground mb-1.5">{diff.message}</p>}
-                      {diff.type === "modification" && (
-                        <>
-                          <div className="mb-1">
-                            <span className="font-semibold">{json1Name}:</span>{" "}
-                            <pre className="inline bg-muted p-0.5 rounded text-xs">{JSON.stringify(diff.oldValue)}</pre>
-                          </div>
-                          <div>
-                            <span className="font-semibold">{json2Name}:</span>{" "}
-                            <pre className="inline bg-muted p-0.5 rounded text-xs">{JSON.stringify(diff.newValue)}</pre>
-                          </div>
-                        </>
-                      )}
-                      {diff.type === "addition" && (
-                        <div>
-                          <span className="font-semibold">Added in {json2Name}:</span>{" "}
-                          <pre className="inline bg-muted p-0.5 rounded text-xs">{JSON.stringify(diff.newValue)}</pre>
-                        </div>
-                      )}
-                      {diff.type === "deletion" && (
-                        <div>
-                          <span className="font-semibold">Removed from {json1Name}:</span>{" "}
-                          <pre className="inline bg-muted p-0.5 rounded text-xs">{JSON.stringify(diff.oldValue)}</pre>
-                        </div>
-                      )}
-                    </CollapsibleContent>
-                  </Collapsible>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  No differences found. The JSON objects are identical.
-                </p>
-              )}
-            </div>
-          </StickyResultsPanel>
-        )}
-      </div>
-    </ToolGrid>
-  )
-
-  const settingsContent = (
-    <ToolGrid className="grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Formatting Options</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="indentation">Indentation</Label>
-              <Select
-                value={settings.indentation.toString()}
-                onValueChange={(value) => setSettings((prev) => ({ ...prev, indentation: Number.parseInt(value) }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2">2 spaces</SelectItem>
-                  <SelectItem value="4">4 spaces</SelectItem>
-                  <SelectItem value="8">8 spaces</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between">
-              <Label htmlFor="sort-keys">Sort Keys Alphabetically</Label>
-              <Switch
-                id="sort-keys"
-                checked={settings.sortKeys}
-                onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, sortKeys: checked }))}
-              />
-            </div>
+  // Render JSON input card (matching JSON Formatter structure)
+  const renderJsonInputCard = (
+    id: "json1" | "json2",
+    title: string,
+    value: string,
+    onChange: (val: string, fName?: string) => void,
+    error?: string,
+    isLoading?: boolean,
+    fileName?: string,
+  ) => (
+    <Card className="tool-card">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <FileJson className="h-5 w-5" />
+            {title}
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            {fileName && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">{fileName}</span>}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleFormatJson(id)}
+                  disabled={!value || !!error}
+                  className="h-8 w-8"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Format JSON</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => value && navigator.clipboard.writeText(value)}
+                  disabled={!value}
+                  className="h-8 w-8"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Copy to clipboard</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleDownload(id)}
+                  disabled={!value}
+                  className="h-8 w-8"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Download JSON</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => document.getElementById(`${id}-file-upload`)?.click()}
+                  className="h-8 w-8"
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Upload JSON file</TooltipContent>
+            </Tooltip>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg">Comparison Options</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="ignore-order">Ignore Array Order</Label>
-                <p className="text-sm text-muted-foreground">Compare arrays by content, not position</p>
-              </div>
-              <Switch
-                id="ignore-order"
-                checked={settings.ignoreOrder}
-                onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreOrder: checked }))}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="fuzzy-match">Fuzzy String Matching</Label>
-                <p className="text-sm text-muted-foreground">Match similar strings with minor differences</p>
-              </div>
-              <Switch
-                id="fuzzy-match"
-                checked={settings.fuzzyMatch}
-                onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, fuzzyMatch: checked }))}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="ignore-case">Ignore Case</Label>
-                <p className="text-sm text-muted-foreground">Case-insensitive string comparison</p>
-              </div>
-              <Switch
-                id="ignore-case"
-                checked={settings.ignoreCase}
-                onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreCase: checked }))}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="md:col-span-2 pt-6 border-t">
-        <Button onClick={performComparison} className="w-full">
-          <GitCompare className="h-4 w-4 mr-2" /> Apply Settings & Re-compare
-        </Button>
-      </div>
-    </ToolGrid>
+      </CardHeader>
+      <CardContent>
+        <JsonInput
+          value={value}
+          onValueChange={onChange}
+          errorText={error}
+          isLoading={isLoading}
+          placeholder={`Paste ${title} here or upload a file...`}
+          showLineNumbers={true}
+          comparisonResult={jsonInputComparisonResultProp}
+          side={id === "json1" ? "left" : "right"}
+          highlightedPath={highlightedPath}
+          responsiveHeight="100%"
+          className="h-96 zinc-textarea font-mono text-sm"
+          textAreaClassName="p-3"
+        />
+        <input
+          id={`${id}-file-upload`}
+          type="file"
+          accept=".json,application/json"
+          onChange={(e) => handleFileUpload(e, id)}
+          className="hidden"
+        />
+      </CardContent>
+    </Card>
   )
-
-  const presetsContent = (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Example Presets</h3>
-        <p className="text-sm text-muted-foreground">
-          Load predefined JSON examples to test different comparison scenarios.
-        </p>
-      </div>
-      <div className="grid gap-3">
-        {Object.entries(PRESET_EXAMPLES).map(([key, preset]) => (
-          <Button
-            key={key}
-            variant="outline"
-            className="w-full justify-start h-auto p-4"
-            onClick={() => loadPreset(key as keyof typeof PRESET_EXAMPLES)}
-          >
-            <div className="text-left">
-              <div className="font-medium">{preset.name}</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {key === "basic" && "Simple object comparison with basic differences"}
-                {key === "arrays" && "Test array order comparison settings"}
-                {key === "nested" && "Complex nested object structures"}
-                {key === "fuzzy" && "Test fuzzy string matching capabilities"}
-              </div>
-            </div>
-          </Button>
-        ))}
-      </div>
-    </div>
-  )
-
-  const actionsContent = (
-    <ToolGrid className="grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto">
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg">Quick Actions</h3>
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleFormatJson("json1")}
-            disabled={!json1 || !!json1Error}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Format JSON 1
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleFormatJson("json2")}
-            disabled={!json2 || !!json2Error}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Format JSON 2
-          </Button>
-          <Button variant="outline" className="w-full justify-start" onClick={handleClearAll}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear All
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() =>
-              setSettings({
-                indentation: 2,
-                sortKeys: false,
-                ignoreOrder: false,
-                fuzzyMatch: false,
-                ignoreCase: false,
-              })
-            }
-          >
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Reset Settings
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg">Export Options</h3>
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleDownload("json1")}
-            disabled={!json1}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download JSON 1
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => handleDownload("json2")}
-            disabled={!json2}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download JSON 2
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full justify-start"
-            onClick={() => {
-              if (comparisonResult) {
-                const report = JSON.stringify(comparisonResult, null, 2)
-                const blob = new Blob([report], { type: "application/json" })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement("a")
-                a.href = url
-                a.download = "comparison-report.json"
-                a.click()
-                URL.revokeObjectURL(url)
-              }
-            }}
-            disabled={!comparisonResult}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download Comparison Report
-          </Button>
-        </div>
-      </div>
-    </ToolGrid>
-  )
-
-  const tabs = [
-    {
-      id: "compare",
-      label: "Compare",
-      icon: <GitCompare className="h-4 w-4" />,
-      content: compareContent,
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: <Settings2 className="h-4 w-4" />,
-      content: settingsContent,
-    },
-    {
-      id: "presets",
-      label: "Presets",
-      icon: <Sparkles className="h-4 w-4" />,
-      content: presetsContent,
-    },
-    {
-      id: "actions",
-      label: "Actions",
-      icon: <Zap className="h-4 w-4" />,
-      content: actionsContent,
-    },
-  ]
 
   return (
     <TooltipProvider>
-      <ToolLayoutShell
-        title="JSON Comparator"
-        icon={<GitCompare className="h-6 w-6" />}
-        description="Compare JSON objects and identify differences"
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        stickyControls={stickyControls}
-        className="h-[calc(100vh-var(--app-header-height,60px))] w-full"
-      />
+      <div className="tool-container">
+        {/* Controls Bar */}
+        <Card className="tool-card mb-6">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={performComparison}
+                  disabled={isComparing || (!json1.trim() && !json2.trim())}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <GitCompare className="h-4 w-4 mr-2" />
+                  {isComparing ? "Comparing..." : "Compare"}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Switch id="realtime-compare" checked={realTimeCompare} onCheckedChange={setRealTimeCompare} />
+                  <Label htmlFor="realtime-compare" className="text-sm">
+                    Real-time comparison
+                  </Label>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleClearAll}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* JSON Input Panels */}
+          <div className="lg:col-span-2 space-y-4">
+            {renderJsonInputCard("json1", "JSON 1", json1, handleJson1Change, json1Error, json1Loading, json1Name)}
+            {renderJsonInputCard("json2", "JSON 2", json2, handleJson2Change, json2Error, json2Loading, json2Name)}
+          </div>
+
+          {/* Results and Settings Panel */}
+          <div className="space-y-4">
+            {/* Comparison Results */}
+            <Card className="tool-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <GitCompare className="h-5 w-5" />
+                  Comparison Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!comparisonResult && !isComparing && (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <Info className="h-12 w-12 text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">Input JSON in both panels to compare.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Or enable real-time comparison.</p>
+                    <Button variant="outline" onClick={() => loadPreset("basic")} className="mt-4">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Load Example
+                    </Button>
+                  </div>
+                )}
+
+                {isComparing && (
+                  <div className="flex flex-col items-center justify-center h-64 text-center">
+                    <GitCompare className="h-12 w-12 text-primary animate-pulse mb-3" />
+                    <p className="text-sm text-primary">Comparing JSON objects...</p>
+                  </div>
+                )}
+
+                {comparisonResult && !isComparing && (
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    <div className="p-3 bg-muted/50 rounded-md">
+                      {comparisonResult.areEqual ? (
+                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <CheckCircle className="h-5 w-5" />
+                          <span className="font-medium text-sm">JSON objects are identical.</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                          <AlertCircle className="h-5 w-5" />
+                          <span className="font-medium text-sm">{summary.total} differences found.</span>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-4 gap-2 mt-2 text-xs">
+                        <div className="text-center">
+                          <span className="font-bold text-blue-600">{summary.modifications}</span>
+                          <div className="text-muted-foreground">Modified</div>
+                        </div>
+                        <div className="text-center">
+                          <span className="font-bold text-green-600">{summary.additions}</span>
+                          <div className="text-muted-foreground">Added</div>
+                        </div>
+                        <div className="text-center">
+                          <span className="font-bold text-red-600">{summary.deletions}</span>
+                          <div className="text-muted-foreground">Deleted</div>
+                        </div>
+                        <div className="text-center">
+                          <span className="font-bold text-gray-600">{summary.unchanged}</span>
+                          <div className="text-muted-foreground">Unchanged</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Differences List */}
+                    {summary.total > 0 && (
+                      <ScrollArea className="h-96 zinc-scrollbar">
+                        <div className="space-y-1.5">
+                          {comparisonResult.differences.map((diff, index) => (
+                            <Collapsible
+                              key={`${diff.path}-${index}`}
+                              open={expandedDiffs.has(diff.path)}
+                              onOpenChange={() => toggleDiffExpansion(diff.path)}
+                            >
+                              <CollapsibleTrigger
+                                className={cn(
+                                  "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between",
+                                  highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
+                                )}
+                              >
+                                <div className="flex items-center gap-2 text-xs truncate">
+                                  <DiffTypeIcon type={diff.type} />
+                                  <span className="font-mono truncate" title={diff.path || "Root"}>
+                                    {diff.path || "Root"}
+                                  </span>
+                                </div>
+                                {expandedDiffs.has(diff.path) ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </CollapsibleTrigger>
+                              <CollapsibleContent className="p-2.5 text-xs border border-t-0 rounded-b-md bg-background">
+                                <p className="font-medium mb-1 capitalize">
+                                  {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
+                                </p>
+                                {diff.message && <p className="text-muted-foreground mb-1.5">{diff.message}</p>}
+                                {diff.type === "modification" && (
+                                  <>
+                                    <div className="mb-1">
+                                      <span className="font-semibold">{json1Name}:</span>{" "}
+                                      <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                        {JSON.stringify(diff.oldValue)}
+                                      </pre>
+                                    </div>
+                                    <div>
+                                      <span className="font-semibold">{json2Name}:</span>{" "}
+                                      <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                        {JSON.stringify(diff.newValue)}
+                                      </pre>
+                                    </div>
+                                  </>
+                                )}
+                                {diff.type === "addition" && (
+                                  <div>
+                                    <span className="font-semibold">Added in {json2Name}:</span>{" "}
+                                    <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                      {JSON.stringify(diff.newValue)}
+                                    </pre>
+                                  </div>
+                                )}
+                                {diff.type === "deletion" && (
+                                  <div>
+                                    <span className="font-semibold">Removed from {json1Name}:</span>{" "}
+                                    <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                      {JSON.stringify(diff.oldValue)}
+                                    </pre>
+                                  </div>
+                                )}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Settings Panel */}
+            <Card className="tool-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Settings2 className="h-5 w-5" />
+                  Comparison Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="indentation">Indentation</Label>
+                  <Select
+                    value={settings.indentation.toString()}
+                    onValueChange={(value) => setSettings((prev) => ({ ...prev, indentation: Number.parseInt(value) }))}
+                  >
+                    <SelectTrigger className="zinc-input">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2 spaces</SelectItem>
+                      <SelectItem value="4">4 spaces</SelectItem>
+                      <SelectItem value="8">8 spaces</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="sort-keys">Sort Keys Alphabetically</Label>
+                    <p className="text-xs text-muted-foreground">Organize object properties in alphabetical order.</p>
+                  </div>
+                  <Switch
+                    id="sort-keys"
+                    checked={settings.sortKeys}
+                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, sortKeys: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="ignore-order">Ignore Array Order</Label>
+                    <p className="text-xs text-muted-foreground">Compare arrays by content, not position.</p>
+                  </div>
+                  <Switch
+                    id="ignore-order"
+                    checked={settings.ignoreOrder}
+                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreOrder: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="fuzzy-match">Fuzzy String Matching</Label>
+                    <p className="text-xs text-muted-foreground">Match similar strings with minor differences.</p>
+                  </div>
+                  <Switch
+                    id="fuzzy-match"
+                    checked={settings.fuzzyMatch}
+                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, fuzzyMatch: checked }))}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="ignore-case">Ignore Case</Label>
+                    <p className="text-xs text-muted-foreground">Case-insensitive string comparison.</p>
+                  </div>
+                  <Switch
+                    id="ignore-case"
+                    checked={settings.ignoreCase}
+                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreCase: checked }))}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="tool-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => loadPreset("basic")}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Load Basic Example
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => loadPreset("arrays")}
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Load Array Test
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => loadPreset("nested")}
+                >
+                  <FileJson className="h-4 w-4 mr-2" />
+                  Load Nested Objects
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => loadPreset("fuzzy")}
+                >
+                  <Info className="h-4 w-4 mr-2" />
+                  Load Fuzzy Test
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleClearAll}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() =>
+                    setSettings({
+                      indentation: 2,
+                      sortKeys: false,
+                      ignoreOrder: false,
+                      fuzzyMatch: false,
+                      ignoreCase: false,
+                    })
+                  }
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </TooltipProvider>
   )
 }
