@@ -8,15 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-// Removed ThemeToggle import as it's in AppHeaderNav
 import { Download, Copy, Upload, FileText, Settings, CheckCircle, AlertTriangle, Trash2, Sparkles } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import Link from "next/link" // Keep for internal links if any, like to comparator
+import Link from "next/link"
 
 interface FormatterSettings {
   indentation: number
   sortKeys: boolean
-  // removeComments and removeWhitespace were not used in the UI, keeping for potential future use
 }
 
 export function JsonFormatter() {
@@ -58,7 +56,6 @@ export function JsonFormatter() {
   )
 
   const sortObjectKeys = (obj: any): any => {
-    // Implementation remains the same
     if (Array.isArray(obj)) {
       return obj.map(sortObjectKeys)
     } else if (obj !== null && typeof obj === "object") {
@@ -79,9 +76,9 @@ export function JsonFormatter() {
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    // Implementation remains the same
     const file = event.target.files?.[0]
     if (!file) return
+
     try {
       const content = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
@@ -89,12 +86,14 @@ export function JsonFormatter() {
         reader.onerror = () => reject(new Error("Failed to read file"))
         reader.readAsText(file)
       })
+
       setFileName(file.name)
       setJsonInput(content)
       validateAndFormat(content)
     } catch (err) {
       setError("Failed to read file. Please try again.")
     }
+
     event.target.value = ""
   }
 
@@ -154,19 +153,13 @@ export function JsonFormatter() {
 
   return (
     <TooltipProvider>
-      {/* Removed the tool-specific header. AppLayout provides the header. */}
       <div className="tool-container">
-        {" "}
-        {/* Use consistent container class */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Input Panel */}
           <div className="lg:col-span-2 space-y-4">
             <Card className="tool-card">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    {" "}
-                    {/* Adjusted size */}
                     <Upload className="h-5 w-5" />
                     JSON Input
                   </CardTitle>
@@ -184,7 +177,7 @@ export function JsonFormatter() {
                       <TooltipTrigger asChild>
                         <Button
                           variant="outline"
-                          size="icon" // Changed to icon for compactness
+                          size="icon"
                           onClick={() => document.getElementById("file-upload")?.click()}
                           className="h-8 w-8"
                         >
@@ -209,7 +202,7 @@ export function JsonFormatter() {
                   value={jsonInput}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="Paste your JSON here or upload a file..."
-                  className="zinc-textarea h-96 font-mono text-sm" // Applied zinc-textarea
+                  className="zinc-textarea h-96 font-mono text-sm"
                 />
                 {!jsonInput && (
                   <div className="mt-4 text-center">
@@ -235,7 +228,6 @@ export function JsonFormatter() {
               </CardContent>
             </Card>
 
-            {/* Output Panel */}
             <Card className="tool-card">
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -283,7 +275,6 @@ export function JsonFormatter() {
             </Card>
           </div>
 
-          {/* Settings Panel */}
           <div className="space-y-4">
             <Card className="tool-card">
               <CardHeader>
@@ -370,7 +361,7 @@ export function JsonFormatter() {
                 </Button>
                 <Link href="/comparator" className="block">
                   <Button variant="outline" size="sm" className="w-full justify-start">
-                    <FileText className="h-4 w-4 mr-2" /> {/* Consider GitCompare icon */}
+                    <FileText className="h-4 w-4 mr-2" />
                     Compare JSON
                   </Button>
                 </Link>

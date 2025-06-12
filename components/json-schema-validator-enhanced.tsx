@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useCallback, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -47,7 +48,6 @@ export function JsonSchemaValidatorEnhanced() {
   const [isValidating, setIsValidating] = useState(false)
   const [realTimeValidation, setRealTimeValidation] = useState(true)
   const [validatorOptions, setValidatorOptions] = useState<ValidatorOptions>({
-    /* options */
     draft: "auto",
     strict: false,
     allErrors: true,
@@ -76,7 +76,6 @@ export function JsonSchemaValidatorEnhanced() {
       const result = await validator.validate(jsonInput, schemaInput, validatorOptions)
       setValidationResult(result)
 
-      // Generate schema visualization
       try {
         const parsedSchema = validator.parseInput(schemaInput)
         const visualization = validator.generateSchemaVisualization(parsedSchema)
@@ -197,15 +196,9 @@ export function JsonSchemaValidatorEnhanced() {
 
   return (
     <TooltipProvider>
-      {/* Removed tool-specific header. AppLayout provides the header. */}
-      {/* Removed outer gradient background div, AppLayout handles background */}
       <div className="tool-container space-y-6">
-        {" "}
-        {/* Use consistent container and spacing */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            {" "}
-            {/* Adjusted for potentially fewer tabs */}
             <TabsTrigger value="validate" className="flex items-center gap-2 text-xs sm:text-sm">
               <Shield className="h-4 w-4" /> Validate
             </TabsTrigger>
@@ -418,7 +411,6 @@ export function JsonSchemaValidatorEnhanced() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {/* Summary and Schema Info rendering logic remains similar, ensure zinc theme classes for badges/backgrounds */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                       <div className="text-center p-2 bg-muted/50 rounded-md">
                         <div className="text-xl font-bold text-red-600">{validationResult.summary.totalErrors}</div>
@@ -446,7 +438,6 @@ export function JsonSchemaValidatorEnhanced() {
                     {validationResult.schemaInfo && (
                       <div className="mt-4 p-3 bg-muted/30 rounded-lg text-xs">
                         <h4 className="font-semibold mb-1.5 text-sm">Schema Information</h4>
-                        {/* ... schema info details ... */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                           {validationResult.schemaInfo.title && (
                             <div>
@@ -517,7 +508,6 @@ export function JsonSchemaValidatorEnhanced() {
                                   )}
                                 </CollapsibleTrigger>
                                 <CollapsibleContent className="mt-2 pt-2 border-t text-xs">
-                                  {/* Error details rendering logic remains similar */}
                                   <div className="space-y-2">
                                     {error.suggestion && (
                                       <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
@@ -605,7 +595,6 @@ export function JsonSchemaValidatorEnhanced() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Settings rendering logic remains similar, ensure zinc theme for inputs/switches */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="font-semibold text-sm">Schema Options</h3>

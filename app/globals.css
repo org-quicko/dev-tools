@@ -40,7 +40,7 @@
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover-foreground: 240 0% 98%;
     --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 3.7% 15.9%;
@@ -149,7 +149,7 @@
   }
 
   .zinc-textarea {
-    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50; /* Corrected space */
+    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
   }
   .zinc-textarea:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
@@ -218,7 +218,7 @@
   }
   .modern-scrollbar {
     /* Ensure this is also updated if used elsewhere */
-    @apply zinc-scrollbar;
+    @apply zinc-scrollbar; /* This is correct */
   }
   .zinc-transition {
     transition:
@@ -367,81 +367,6 @@
   white-space: pre;
   min-width: max-content;
   border-bottom: 1px solid transparent;
-}
-
-/* ===== ANALYSIS PANEL (Updated) ===== */
-.analysis-panel-wrapper {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.analysis-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.analysis-panel-header {
-  flex-shrink: 0;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-.analysis-panel-content {
-  flex: 1;
-  overflow-y: auto !important;
-  overflow-x: hidden;
-  min-height: 0;
-  padding: 1rem;
-}
-
-/* ===== CONTENT GRID LAYOUT ===== */
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-  height: 100%;
-  min-height: 0;
-}
-
-.content-grid-item {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* ===== JSON CONTENT STYLING (Updated for Zinc) ===== */
-.json-viewer-line {
-  display: flex;
-  align-items: flex-start;
-  min-height: 24px;
-  line-height: 24px;
-  font-size: 14px;
-  border-bottom: 1px solid transparent;
-  white-space: pre;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Source Code Pro", "Menlo", "Consolas", monospace;
-  overflow: visible;
-  min-width: max-content;
-}
-
-.json-content {
-  white-space: pre;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Source Code Pro", "Menlo", "Consolas", monospace;
-  line-height: 1.5;
-  min-width: max-content;
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-}
-
-.json-textarea {
-  /* This might be redundant now if components use `className="zinc-textarea"` */
-  @apply zinc-textarea; /* Or remove if direct usage is preferred */
-  /* Any specific overrides for json-textarea can go here if needed */
 }
 
 /* Analysis content - WITH wrapping, vertical scroll only */
