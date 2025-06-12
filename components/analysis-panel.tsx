@@ -165,7 +165,7 @@ export function AnalysisPanel({
             <div className="text-sm text-muted-foreground mb-2">
               <code
                 className={cn(
-                  "px-2 py-1 rounded text-xs font-mono analysis-code",
+                  "px-2 py-1 rounded text-xs font-mono analysis-code break-all",
                   isHighlighted ? "bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200" : "bg-muted",
                 )}
               >
