@@ -236,7 +236,7 @@ export function JsonSchemaValidatorEnhanced() {
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                 <Home className="h-4 w-4" />
-                <span className="text-sm">J</span>
+                <span className="text-sm">JS</span>
               </Link>
               <div className="flex items-center gap-2">
                 <Shield className="h-8 w-8 text-green-600" />
