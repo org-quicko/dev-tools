@@ -1,15 +1,16 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import "./globals.css"
+import "./globals.css" // Ensure globals.css has zinc theme variables
 import { ThemeProvider } from "@/components/theme-provider"
+import { AppLayout } from "@/components/app-layout" // Import the new layout
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "JSON Comparator - Intelligent JSON Comparison Tool",
-  description: "Compare JSON files with semantic analysis, side-by-side view, and intelligent difference detection.",
-    generator: 'v0.dev'
+  title: "Dev Tools - Free Developer Utilities",
+  description: "A collection of free, offline-first utilities to save time and reduce repetitive development work.",
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -24,8 +25,8 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem={true}
-          disableTransitionOnChange={false}
-          storageKey="json-comparator-theme"
+          disableTransitionOnChange={false} // Set to false for smoother theme transitions
+          storageKey="dev-tools-theme" // Unique storage key
         >
           <script
             dangerouslySetInnerHTML={{
@@ -36,7 +37,7 @@ export default function RootLayout({
               `,
             }}
           />
-          {children}
+          <AppLayout>{children}</AppLayout>
         </ThemeProvider>
       </body>
     </html>
