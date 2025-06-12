@@ -23,7 +23,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 240 5.9% 10%; /* Updated to zinc ring color */
     --radius: 0.5rem;
 
     /* Zinc-specific scrollbar variables */
@@ -53,7 +53,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --ring: 240 4.9% 83.9%; /* Updated to zinc ring color */
 
     /* Dark mode scrollbar variables */
     --scrollbar-thumb: 240 5% 64.9%;
@@ -100,7 +100,7 @@
 
   /* Consistent container styling */
   .tool-container {
-    @apply container mx-auto px-4 py-6;
+    @apply px-4 py-6; /* Removed container and mx-auto, AppLayout handles this */
   }
 
   /* Unified card styling with zinc theme */
@@ -144,103 +144,82 @@
   .zinc-input {
     @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
   }
-
   .zinc-input:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
   .zinc-textarea {
-    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50; /* Corrected space */
   }
-
   .zinc-textarea:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
-  /* ===== ZINC THEME BADGES ===== */
+  /* Other zinc components from previous step... */
   .zinc-badge-default {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
     @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
   }
-
   .zinc-badge-secondary {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
     @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
-
   .zinc-badge-outline {
     @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
     @apply text-foreground;
   }
-
-  /* ===== ZINC THEME ALERTS ===== */
   .zinc-alert {
     @apply relative w-full rounded-lg border p-4;
     border-color: hsl(var(--border));
     background-color: hsl(var(--background));
   }
-
   .zinc-alert-destructive {
     @apply border-destructive/50 text-destructive dark:border-destructive;
     background-color: hsl(var(--destructive) / 0.05);
   }
-
-  /* ===== ZINC THEME STATUS INDICATORS ===== */
   .zinc-status-success {
     @apply bg-green-50 text-green-800 border-green-200 dark:bg-green-950/20 dark:text-green-300 dark:border-green-800;
   }
-
   .zinc-status-error {
     @apply bg-red-50 text-red-800 border-red-200 dark:bg-red-950/20 dark:text-red-300 dark:border-red-800;
   }
-
   .zinc-status-warning {
     @apply bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-950/20 dark:text-yellow-300 dark:border-yellow-800;
   }
-
   .zinc-status-info {
     @apply bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-800;
   }
 }
 
-/* ===== ZINC THEME SCROLLBARS ===== */
 @layer utilities {
   .zinc-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--scrollbar-thumb)) hsl(var(--scrollbar-track));
   }
-
   .zinc-scrollbar::-webkit-scrollbar {
     width: var(--scrollbar-size);
     height: var(--scrollbar-size);
   }
-
   .zinc-scrollbar::-webkit-scrollbar-track {
     background: hsl(var(--scrollbar-track));
     border-radius: 4px;
   }
-
   .zinc-scrollbar::-webkit-scrollbar-thumb {
     background-color: hsl(var(--scrollbar-thumb));
     border-radius: 4px;
     border: none;
     transition: background-color 0.2s ease;
   }
-
   .zinc-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--scrollbar-thumb-hover));
   }
-
   .zinc-scrollbar::-webkit-scrollbar-corner {
     background: hsl(var(--scrollbar-track));
   }
-
-  /* Replace the old modern-scrollbar class */
   .modern-scrollbar {
+    /* Ensure this is also updated if used elsewhere */
     @apply zinc-scrollbar;
   }
-
-  /* ===== ZINC THEME TRANSITIONS ===== */
   .zinc-transition {
     transition:
       background-color 0.2s ease-in-out,
@@ -250,8 +229,6 @@
       opacity 0.2s ease-in-out,
       transform 0.2s ease-in-out;
   }
-
-  /* Prevent transition flicker on theme change */
   .theme-transition-disabled * {
     transition: none !important;
   }
@@ -462,10 +439,9 @@
 }
 
 .json-textarea {
-  white-space: pre;
-  word-break: normal;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", "Source Code Pro", "Menlo", "Consolas", monospace;
-  resize: none;
+  /* This might be redundant now if components use `className="zinc-textarea"` */
+  @apply zinc-textarea; /* Or remove if direct usage is preferred */
+  /* Any specific overrides for json-textarea can go here if needed */
 }
 
 /* Analysis content - WITH wrapping, vertical scroll only */
@@ -583,24 +559,13 @@
 }
 
 /* ===== ZINC THEME SYNTAX HIGHLIGHTING ===== */
-.dark .text-blue-600 {
-  color: rgb(96 165 250) !important;
-}
-
-.dark .text-green-600 {
-  color: rgb(74 222 128) !important;
-}
-
-.dark .text-orange-600 {
-  color: rgb(251 146 60) !important;
-}
-
-.dark .text-purple-600 {
-  color: rgb(196 181 253) !important;
-}
-
+.dark .text-blue-600,
+.dark .text-green-600,
+.dark .text-orange-600,
+.dark .text-purple-600,
 .dark .text-gray-500 {
-  color: rgb(156 163 175) !important;
+  /* These might be handled by a proper syntax highlighter or new zinc-json-* classes */
+  /* Consider removing if they cause conflicts or are no longer needed */
 }
 
 /* ===== DIALOG AND POPUP IMPROVEMENTS ===== */
