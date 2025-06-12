@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
-import { ResponsiveJsonInput, JsonInputActions } from "./responsive-json-input"
+import { SharedJsonInput, JsonInputActions } from "./shared-json-input"
 import { compareJsons, type ComparisonSettings } from "@/lib/json-compare"
 import { prettifyJson } from "@/lib/json-utils"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -335,7 +335,7 @@ export function JsonComparator() {
         />
       ),
       content: (
-        <ResponsiveJsonInput
+        <SharedJsonInput
           value={json1}
           onValueChange={handleJson1Change}
           placeholder="Paste your first JSON here..."
@@ -364,7 +364,7 @@ export function JsonComparator() {
         />
       ),
       content: (
-        <ResponsiveJsonInput
+        <SharedJsonInput
           value={json2}
           onValueChange={handleJson2Change}
           placeholder="Paste your second JSON here..."

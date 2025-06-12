@@ -22,7 +22,7 @@ import {
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
-import { ResponsiveJsonInput, JsonInputActions } from "./responsive-json-input"
+import { SharedJsonInput, JsonInputActions } from "./shared-json-input"
 import {
   EnhancedJsonSchemaValidator,
   type ValidationResult,
@@ -278,7 +278,7 @@ export function JsonSchemaValidatorEnhanced() {
         />
       ),
       content: (
-        <ResponsiveJsonInput
+        <SharedJsonInput
           value={jsonInput}
           onValueChange={(val, fName) => {
             setJsonInput(val)
@@ -317,7 +317,7 @@ export function JsonSchemaValidatorEnhanced() {
         />
       ),
       content: (
-        <ResponsiveJsonInput
+        <SharedJsonInput
           value={schemaInput}
           onValueChange={(val, fName) => {
             setSchemaInput(val)
