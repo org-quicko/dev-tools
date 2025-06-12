@@ -149,7 +149,7 @@
   }
 
   .zinc-textarea {
-    @apply flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50;
   }
   .zinc-textarea:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
