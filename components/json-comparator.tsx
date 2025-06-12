@@ -527,7 +527,7 @@ export function JsonComparator() {
                         >
                           <div className="flex items-center gap-2 truncate min-w-0">
                             <DiffTypeIcon type={diff.type} />
-                            <span className="font-mono truncate" title={diff.path || "Root"}>
+                            <span className="font-mono break-all" title={diff.path || "Root"}>
                               {diff.path || "Root"}
                             </span>
                           </div>
@@ -540,7 +540,7 @@ export function JsonComparator() {
                         <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background">
                           <div className="space-y-1">
                             <p className="font-medium capitalize">
-                              {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
+                              {diff.type} at <span className="font-mono break-all">{diff.path || "Root"}</span>
                             </p>
                             {diff.message && <p className="text-muted-foreground">{diff.message}</p>}
                             {diff.type === "modification" && (
