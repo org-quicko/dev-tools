@@ -1,590 +1,518 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Badge } from "@/components/ui/badge"
 import {
   GitCompare,
   Upload,
   Copy,
-  Download,
   Trash2,
-  Settings,
+  Settings2,
   AlertCircle,
   CheckCircle,
   ChevronDown,
   ChevronRight,
   FileJson,
-  Sparkles,
+  Info,
+  Search,
 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { JsonInput } from "@/components/json-input"
-import { useJsonContext } from "@/contexts/json-context"
-import { compareJsons, type JsonComparisonResult, type Difference } from "@/lib/json-compare" // Corrected import
-import { formatJsonError, validateJson } from "@/lib/json-validation"
+import {
+  compareJsons,
+  type JsonComparisonResult as LibComparisonResult,
+  type Difference as LibDifference,
+  type ComparisonOptions as LibComparisonOptions,
+} from "@/lib/json-compare"
 import { useDebounce } from "@/hooks/use-debounce"
+import type {
+  JsonComparisonResult as TypesComparisonResult,
+  JsonDifference as TypesJsonDifference,
+} from "@/types/comparison" // For JsonInput prop
+
+// Helper to adapt LibDifference to TypesJsonDifference for JsonInput's comparisonResult prop
+const adaptDifferencesForJsonInput = (libDiffs: LibDifference[]): TypesJsonDifference[] => {
+  return libDiffs.map((diff) => ({
+    type: diff.type === "none" ? "modification" : diff.type, // JsonInput might not handle 'none' type for color
+    path: diff.path,
+    leftLine: diff.leftLine,
+    rightLine: diff.rightLine,
+    oldValue: diff.leftValue,
+    newValue: diff.rightValue,
+  }))
+}
 
 export function JsonComparator() {
-  const { state, setJson, setError, clearAll } = useJsonContext()
-  const [comparisonResult, setComparisonResult] = useState<JsonComparisonResult | null>(null)
+  const [json1, setJson1] = useState("")
+  const [json1Name, setJson1Name] = useState("JSON 1")
+  const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
+  const [json1Loading, setJson1Loading] = useState(false)
+
+  const [json2, setJson2] = useState("")
+  const [json2Name, setJson2Name] = useState("JSON 2")
+  const [json2Error, setJson2Error] = useState<string | undefined>(undefined)
+  const [json2Loading, setJson2Loading] = useState(false)
+
+  const [comparisonResult, setComparisonResult] = useState<LibComparisonResult | null>(null)
   const [isComparing, setIsComparing] = useState(false)
   const [realTimeCompare, setRealTimeCompare] = useState(true)
-  const [comparisonOptions, setComparisonOptions] = useState({
-    ignoreOrder: false,
-    ignoreWhitespace: false,
+  const [comparisonOptions, setComparisonOptions] = useState<LibComparisonOptions>({
+    ignoreArrayOrder: false,
     ignoreCase: false,
-    ignoreValues: false,
+    // Add other options from lib/json-compare as needed
   })
-  const [activeTab, setActiveTab] = useState("compare")
-  const [expandedDiffs, setExpandedDiffs] = new Set<number>(new Set())
+  const [expandedDiffs, setExpandedDiffs] = useState<Set<string>>(new Set()) // Use path for key
   const [highlightedPath, setHighlightedPath] = useState<string | null>(null)
 
-  const debouncedJson1 = useDebounce(state.json1, 500)
-  const debouncedJson2 = useDebounce(state.json2, 500)
+  const debouncedJson1 = useDebounce(json1, 500)
+  const debouncedJson2 = useDebounce(json2, 500)
 
-  const performComparison = useCallback(() => {
-    if (!debouncedJson1.trim() && !debouncedJson2.trim()) {
+  const performComparison = useCallback(async () => {
+    if (!json1.trim() && !json2.trim()) {
       setComparisonResult(null)
+      setJson1Error(undefined)
+      setJson2Error(undefined)
       return
     }
-
     setIsComparing(true)
+    // Simulate async for loading state if compareJsons is synchronous
+    await new Promise((resolve) => setTimeout(resolve, 50))
     try {
-      const result = compareJsons(debouncedJson1, debouncedJson2, comparisonOptions) // Corrected function call
+      const result = compareJsons(json1, json2, comparisonOptions)
       setComparisonResult(result)
-      setError("json1", result.errors.json1 || undefined)
-      setError("json2", result.errors.json2 || undefined)
+      setJson1Error(result.errors.json1)
+      setJson2Error(result.errors.json2)
     } catch (err) {
       console.error("Comparison error:", err)
-      setError("json1", "Error during comparison. Please check JSON syntax.")
-      setError("json2", "Error during comparison. Please check JSON syntax.")
+      const errorMsg = "Error during comparison. Check JSON syntax or tool console."
+      setJson1Error(errorMsg)
+      setJson2Error(errorMsg)
       setComparisonResult(null)
     } finally {
       setIsComparing(false)
     }
-  }, [debouncedJson1, debouncedJson2, comparisonOptions, setError])
+  }, [json1, json2, comparisonOptions])
 
   useEffect(() => {
     if (realTimeCompare) {
       performComparison()
     }
-  }, [debouncedJson1, debouncedJson2, realTimeCompare, performComparison])
+  }, [debouncedJson1, debouncedJson2, realTimeCompare, performComparison]) // Use debounced values
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, target: 1 | 2) => {
+  const handleJson1Change = (value: string, fileName?: string) => {
+    setJson1(value)
+    if (fileName) setJson1Name(fileName)
+    setJson1Error(undefined) // Clear error on change
+  }
+
+  const handleJson2Change = (value: string, fileName?: string) => {
+    setJson2(value)
+    if (fileName) setJson2Name(fileName)
+    setJson2Error(undefined) // Clear error on change
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, target: "json1" | "json2") => {
     const file = event.target.files?.[0]
     if (!file) return
 
+    const setLoading = target === "json1" ? setJson1Loading : setJson2Loading
+    setLoading(true)
+
     try {
-      const content = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = (e) => resolve(e.target?.result as string)
-        reader.onerror = () => reject(new Error("Failed to read file"))
-        reader.readAsText(file)
-      })
-
-      const validationResult = validateJson(content)
-      if (!validationResult.isValid && validationResult.error) {
-        const formattedError = formatJsonError(
-          validationResult.error,
-          validationResult.lineNumber,
-          validationResult.columnNumber,
-        )
-        setError(target === 1 ? "json1" : "json2", formattedError)
+      const content = await file.text()
+      if (target === "json1") {
+        handleJson1Change(content, file.name)
       } else {
-        setError(target === 1 ? "json1" : "json2", undefined)
+        handleJson2Change(content, file.name)
       }
-
-      setJson(target, content, file.name)
     } catch (err) {
-      setError(target === 1 ? "json1" : "json2", "Failed to read file. Please try again.")
+      const setError = target === "json1" ? setJson1Error : setJson2Error
+      setError("Failed to read file.")
+    } finally {
+      setLoading(false)
+      event.target.value = "" // Reset file input
     }
-    event.target.value = ""
   }
 
-  const handleClear = () => {
-    clearAll()
+  const handleClearAll = () => {
+    setJson1("")
+    setJson2("")
+    setJson1Name("JSON 1")
+    setJson2Name("JSON 2")
+    setJson1Error(undefined)
+    setJson2Error(undefined)
     setComparisonResult(null)
     setExpandedDiffs(new Set())
     setHighlightedPath(null)
   }
 
-  const handleCopy = (target: 1 | 2) => {
-    const textToCopy = target === 1 ? state.json1 : state.json2
-    if (textToCopy) {
-      navigator.clipboard.writeText(textToCopy)
-    }
-  }
-
-  const handleDownload = (target: 1 | 2) => {
-    const jsonToDownload = target === 1 ? state.json1 : state.json2
-    const fileName = target === 1 ? state.json1Name : state.json2Name
-    if (!jsonToDownload) return
-
-    const blob = new Blob([jsonToDownload], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = fileName || `json-${target}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const toggleDiffExpansion = (index: number) => {
+  const toggleDiffExpansion = (path: string) => {
     setExpandedDiffs((prev) => {
       const newSet = new Set(prev)
-      if (newSet.has(index)) {
-        newSet.delete(index)
-      } else {
-        newSet.add(index)
-      }
+      if (newSet.has(path)) newSet.delete(path)
+      else newSet.add(path)
       return newSet
     })
+    setHighlightedPath(path)
   }
 
-  const handleDiffClick = (diff: Difference) => {
-    setHighlightedPath(diff.path)
-    // Optionally scroll to the diff in the input panels
-  }
+  const summary = useMemo(() => {
+    if (!comparisonResult || !comparisonResult.differences)
+      return { additions: 0, deletions: 0, modifications: 0, total: 0 }
+    const additions = comparisonResult.differences.filter((d) => d.type === "addition").length
+    const deletions = comparisonResult.differences.filter((d) => d.type === "deletion").length
+    const modifications = comparisonResult.differences.filter((d) => d.type === "modification").length
+    return { additions, deletions, modifications, total: additions + deletions + modifications }
+  }, [comparisonResult])
 
-  const insertExample = (target: 1 | 2) => {
-    const example1 = `{
-  "name": "John Doe",
-  "age": 30,
-  "city": "New York",
-  "hobbies": ["reading", "coding"],
-  "isActive": true
-}`
-    const example2 = `{
-  "name": "Jane Doe",
-  "age": 31,
-  "city": "New York",
-  "hobbies": ["reading", "hiking", "coding"],
-  "isActive": false,
-  "email": "jane@example.com"
-}`
-    setJson(target, target === 1 ? example1 : example2, `example-${target}.json`)
-  }
+  const jsonInputComparisonResultProp = useMemo((): TypesComparisonResult | undefined => {
+    if (!comparisonResult) return undefined
+    return {
+      differences: adaptDifferencesForJsonInput(comparisonResult.differences),
+      summary: {
+        // This summary is for the JsonInput prop, if it uses it.
+        additions: summary.additions,
+        deletions: summary.deletions,
+        modifications: summary.modifications,
+        unchanged: 0, // Calculate if needed, or remove if JsonInput doesn't use summary
+      },
+    }
+  }, [comparisonResult, summary])
+
+  const renderJsonInputCard = (
+    id: "json1" | "json2",
+    title: string,
+    value: string,
+    onChange: (val: string, fName?: string) => void,
+    error?: string,
+    isLoading?: boolean,
+    fileName?: string,
+  ) => (
+    <Card className="flex flex-col h-full tool-card">
+      <CardHeader className="py-3 px-4 border-b">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <FileJson className="h-5 w-5 text-muted-foreground" /> {fileName || title}
+          </CardTitle>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => navigator.clipboard.writeText(value)}
+                  disabled={!value}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Copy</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                  <Label
+                    htmlFor={`${id}-file-upload`}
+                    className="cursor-pointer inline-flex items-center justify-center"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                  </Label>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Upload</TooltipContent>
+            </Tooltip>
+            <input
+              type="file"
+              id={`${id}-file-upload`}
+              accept=".json"
+              className="hidden"
+              onChange={(e) => handleFileUpload(e, id)}
+            />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 flex-grow relative">
+        <JsonInput
+          value={value}
+          onValueChange={onChange}
+          errorText={error}
+          isLoading={isLoading}
+          placeholder={`Paste ${title} here or drop a file...`}
+          showLineNumbers={true}
+          comparisonResult={jsonInputComparisonResultProp}
+          side={id === "json1" ? "left" : "right"}
+          highlightedPath={highlightedPath}
+          responsiveHeight="100%"
+          className="h-full"
+          textAreaClassName="p-3"
+        />
+      </CardContent>
+    </Card>
+  )
 
   return (
     <TooltipProvider>
-      <div className="tool-container space-y-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3">
-            <TabsTrigger value="compare" className="flex items-center gap-2 text-xs sm:text-sm">
-              <GitCompare className="h-4 w-4" /> Compare
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Settings className="h-4 w-4" /> Settings
-            </TabsTrigger>
-            <TabsTrigger value="actions" className="flex items-center gap-2 text-xs sm:text-sm">
-              <Sparkles className="h-4 w-4" /> Actions
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="compare" className="space-y-6">
-            <Card className="tool-card">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <GitCompare className="h-5 w-5" /> Comparison Controls
-                  </CardTitle>
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-                    <div className="flex items-center space-x-2">
-                      <Switch id="real-time-compare" checked={realTimeCompare} onCheckedChange={setRealTimeCompare} />
-                      <Label htmlFor="real-time-compare" className="text-xs whitespace-nowrap">
-                        Real-time
-                      </Label>
-                    </div>
-                    <Button onClick={performComparison} disabled={isComparing} size="sm" className="h-9 text-xs">
-                      {isComparing ? (
-                        <GitCompare className="h-4 w-4 mr-1 animate-spin" />
-                      ) : (
-                        <GitCompare className="h-4 w-4 mr-1" />
-                      )}{" "}
-                      Compare Now
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleClear} className="h-9 text-xs">
-                      <Trash2 className="h-4 w-4 mr-1" /> Clear All
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <Card className="tool-card">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <FileJson className="h-5 w-5" /> JSON 1
-                        {state.json1Name && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {state.json1Name}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <div className="flex items-center gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleCopy(1)}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Copy JSON 1</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleDownload(1)}>
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Download JSON 1</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" asChild>
-                              <label
-                                htmlFor="json1-upload"
-                                className="cursor-pointer flex items-center justify-center h-full w-full"
-                              >
-                                <Upload className="h-4 w-4" />
-                                <input
-                                  id="json1-upload"
-                                  type="file"
-                                  accept=".json"
-                                  onChange={(e) => handleFileUpload(e, 1)}
-                                  className="hidden"
-                                />
-                              </label>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Upload JSON 1</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <JsonInput
-                      target={1}
-                      placeholder="Paste your first JSON here..."
-                      showLineNumbers={true}
-                      comparisonResult={comparisonResult}
-                      side="left"
-                      responsiveHeight="auto"
-                    />
-                    {!state.json1 && (
-                      <div className="mt-4 text-center">
-                        <Button variant="outline" onClick={() => insertExample(1)}>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Insert Example JSON 1
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="space-y-4">
-                <Card className="tool-card">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <FileJson className="h-5 w-5" /> JSON 2
-                        {state.json2Name && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {state.json2Name}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <div className="flex items-center gap-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleCopy(2)}>
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Copy JSON 2</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleDownload(2)}>
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Download JSON 2</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" className="h-8 w-8" asChild>
-                              <label
-                                htmlFor="json2-upload"
-                                className="cursor-pointer flex items-center justify-center h-full w-full"
-                              >
-                                <Upload className="h-4 w-4" />
-                                <input
-                                  id="json2-upload"
-                                  type="file"
-                                  accept=".json"
-                                  onChange={(e) => handleFileUpload(e, 2)}
-                                  className="hidden"
-                                />
-                              </label>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Upload JSON 2</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <JsonInput
-                      target={2}
-                      placeholder="Paste your second JSON here..."
-                      showLineNumbers={true}
-                      comparisonResult={comparisonResult}
-                      side="right"
-                      responsiveHeight="auto"
-                    />
-                    {!state.json2 && (
-                      <div className="mt-4 text-center">
-                        <Button variant="outline" onClick={() => insertExample(2)}>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Insert Example JSON 2
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+      <div className="flex flex-col h-[calc(100vh-var(--header-height,100px)-2rem)] gap-4 p-4 tool-container">
+        {" "}
+        {/* Adjust header height var */}
+        {/* Controls Bar */}
+        <Card className="tool-card shrink-0">
+          <CardContent className="p-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={performComparison}
+                disabled={isComparing || !!json1Error || !!json2Error}
+                className="bg-primary hover:bg-primary/90 h-9"
+              >
+                <GitCompare className="h-4 w-4 mr-2" />
+                {isComparing ? "Comparing..." : "Compare"}
+              </Button>
+              <div className="flex items-center gap-2">
+                <Switch id="realtime-compare" checked={realTimeCompare} onCheckedChange={setRealTimeCompare} />
+                <Label htmlFor="realtime-compare" className="text-sm">
+                  Real-time
+                </Label>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <DialogSettings options={comparisonOptions} onOptionsChange={setComparisonOptions} />
+              <Button variant="outline" onClick={handleClearAll} className="h-9">
+                <Trash2 className="h-4 w-4 mr-2" /> Clear All
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow min-h-0">
+          {renderJsonInputCard("json1", "JSON 1", json1, handleJson1Change, json1Error, json1Loading, json1Name)}
+          {renderJsonInputCard("json2", "JSON 2", json2, handleJson2Change, json2Error, json2Loading, json2Name)}
 
-            {comparisonResult && (
-              <Card className="tool-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      {comparisonResult.areEqual ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-red-500" />
-                      )}
-                      Comparison Results
-                    </CardTitle>
-                    <Badge
-                      variant={comparisonResult.areEqual ? "default" : "destructive"}
-                      className={`text-xs ${comparisonResult.areEqual ? "zinc-status-success" : "zinc-status-error"}`}
-                    >
-                      {comparisonResult.areEqual ? "Identical" : "Differences Found"}
-                    </Badge>
+          {/* Results Panel */}
+          <Card className="tool-card flex flex-col h-full">
+            <CardHeader className="py-3 px-4 border-b">
+              <CardTitle className="text-base font-medium flex items-center gap-2">
+                <Search className="h-5 w-5 text-muted-foreground" /> Comparison Results
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3 flex-grow overflow-hidden">
+              {!comparisonResult && !isComparing && (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <Info className="h-12 w-12 text-muted-foreground mb-3" />
+                  <p className="text-sm text-muted-foreground">Input JSON in both panels and click "Compare".</p>
+                  <p className="text-xs text-muted-foreground mt-1">Or enable real-time comparison.</p>
+                </div>
+              )}
+              {isComparing && (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <GitCompare className="h-12 w-12 text-primary animate-pulse mb-3" />
+                  <p className="text-sm text-primary">Comparing...</p>
+                </div>
+              )}
+              {comparisonResult && !isComparing && (
+                <div className="h-full flex flex-col">
+                  <div className="shrink-0 mb-3 p-3 bg-muted/50 rounded-md">
+                    {comparisonResult.areEqual ? (
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="font-medium text-sm">JSON objects are identical.</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                        <AlertCircle className="h-5 w-5" />
+                        <span className="font-medium text-sm">Differences found.</span>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                      <div className="text-center">
+                        <span className="font-bold">{summary.modifications}</span> Mod.
+                      </div>
+                      <div className="text-center">
+                        <span className="font-bold">{summary.additions}</span> Add.
+                      </div>
+                      <div className="text-center">
+                        <span className="font-bold">{summary.deletions}</span> Del.
+                      </div>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs mb-4">
-                    <div className="text-center p-2 bg-muted/50 rounded-md">
-                      <div className="text-xl font-bold text-blue-600">
-                        {comparisonResult.differences.filter((d) => d.type === "modification").length}
-                      </div>
-                      <div className="text-muted-foreground">Modifications</div>
-                    </div>
-                    <div className="text-center p-2 bg-muted/50 rounded-md">
-                      <div className="text-xl font-bold text-green-600">
-                        {comparisonResult.differences.filter((d) => d.type === "addition").length}
-                      </div>
-                      <div className="text-muted-foreground">Additions</div>
-                    </div>
-                    <div className="text-center p-2 bg-muted/50 rounded-md">
-                      <div className="text-xl font-bold text-red-600">
-                        {comparisonResult.differences.filter((d) => d.type === "deletion").length}
-                      </div>
-                      <div className="text-muted-foreground">Deletions</div>
-                    </div>
-                    <div className="text-center p-2 bg-muted/50 rounded-md">
-                      <div className="text-xl font-bold">{comparisonResult.differences.length}</div>
-                      <div className="text-muted-foreground">Total Differences</div>
-                    </div>
-                  </div>
-
-                  {comparisonResult.differences.length > 0 ? (
-                    <ScrollArea className="h-96 zinc-scrollbar">
-                      <div className="space-y-2 pr-2">
+                  {summary.total > 0 ? (
+                    <ScrollArea className="flex-grow zinc-scrollbar pr-1">
+                      <div className="space-y-1.5">
                         {comparisonResult.differences.map((diff, index) => (
-                          <Collapsible key={index}>
-                            <div
-                              className={`border rounded-md p-3 ${
-                                highlightedPath === diff.path ? "ring-2 ring-yellow-500" : ""
-                              }`}
+                          <Collapsible
+                            key={`${diff.path}-${index}`}
+                            open={expandedDiffs.has(diff.path)}
+                            onOpenChange={() => toggleDiffExpansion(diff.path)}
+                          >
+                            <CollapsibleTrigger
+                              className={cn(
+                                "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between",
+                                highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
+                              )}
                             >
-                              <CollapsibleTrigger
-                                className="flex items-center justify-between w-full text-left text-xs hover:bg-muted/20 p-1 rounded-sm"
-                                onClick={() => toggleDiffExpansion(index)}
-                              >
-                                <div className="flex items-center gap-2 flex-grow min-w-0">
-                                  {diff.type === "addition" && (
-                                    <span className="text-green-500">
-                                      <CheckCircle className="h-4 w-4" />
-                                    </span>
-                                  )}
-                                  {diff.type === "deletion" && (
-                                    <span className="text-red-500">
-                                      <AlertCircle className="h-4 w-4" />
-                                    </span>
-                                  )}
-                                  {diff.type === "modification" && (
-                                    <span className="text-blue-500">
-                                      <GitCompare className="h-4 w-4" />
-                                    </span>
-                                  )}
-                                  <div className="flex-1 truncate">
-                                    <div className="font-medium truncate" title={diff.path}>
-                                      {diff.path || "Root"}
-                                    </div>
-                                    <div className="text-muted-foreground truncate">{diff.message}</div>
+                              <div className="flex items-center gap-2 text-xs truncate">
+                                <DiffTypeIcon type={diff.type} />
+                                <span className="font-mono truncate" title={diff.path || "Root"}>
+                                  {diff.path || "Root"}
+                                </span>
+                              </div>
+                              {expandedDiffs.has(diff.path) ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="p-2.5 text-xs border border-t-0 rounded-b-md bg-background">
+                              <p className="font-medium mb-1 capitalize">
+                                {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
+                              </p>
+                              {diff.message && <p className="text-muted-foreground mb-1.5">{diff.message}</p>}
+                              {diff.type === "modification" && (
+                                <>
+                                  <div className="mb-1">
+                                    <span className="font-semibold">{json1Name}:</span>{" "}
+                                    <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                      {JSON.stringify(diff.leftValue)}
+                                    </pre>
                                   </div>
-                                  <Badge
-                                    className={`text-xs px-1.5 py-0.5 ${
-                                      diff.type === "addition"
-                                        ? "zinc-status-success"
-                                        : diff.type === "deletion"
-                                          ? "zinc-status-error"
-                                          : "zinc-status-info"
-                                    }`}
-                                  >
-                                    {diff.type.charAt(0).toUpperCase() + diff.type.slice(1)}
-                                  </Badge>
+                                  <div>
+                                    <span className="font-semibold">{json2Name}:</span>{" "}
+                                    <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                      {JSON.stringify(diff.rightValue)}
+                                    </pre>
+                                  </div>
+                                </>
+                              )}
+                              {diff.type === "addition" && (
+                                <div>
+                                  <span className="font-semibold">Added in {json2Name}:</span>{" "}
+                                  <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                    {JSON.stringify(diff.rightValue)}
+                                  </pre>
                                 </div>
-                                {expandedDiffs.has(index) ? (
-                                  <ChevronDown className="h-3.5 w-3.5 ml-1 flex-shrink-0" />
-                                ) : (
-                                  <ChevronRight className="h-3.5 w-3.5 ml-1 flex-shrink-0" />
-                                )}
-                              </CollapsibleTrigger>
-                              <CollapsibleContent className="mt-2 pt-2 border-t text-xs">
-                                <div className="space-y-2">
-                                  {diff.leftValue !== undefined && (
-                                    <div>
-                                      <div className="font-medium">JSON 1 Value:</div>
-                                      <div className="font-mono text-xs bg-muted p-1.5 rounded break-all">
-                                        {JSON.stringify(diff.leftValue)}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {diff.rightValue !== undefined && (
-                                    <div>
-                                      <div className="font-medium">JSON 2 Value:</div>
-                                      <div className="font-mono text-xs bg-muted p-1.5 rounded break-all">
-                                        {JSON.stringify(diff.rightValue)}
-                                      </div>
-                                    </div>
-                                  )}
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full justify-center"
-                                    onClick={() => handleDiffClick(diff)}
-                                  >
-                                    Highlight in Inputs
-                                  </Button>
+                              )}
+                              {diff.type === "deletion" && (
+                                <div>
+                                  <span className="font-semibold">Removed from {json1Name}:</span>{" "}
+                                  <pre className="inline bg-muted p-0.5 rounded text-xs">
+                                    {JSON.stringify(diff.leftValue)}
+                                  </pre>
                                 </div>
-                              </CollapsibleContent>
-                            </div>
+                              )}
+                            </CollapsibleContent>
                           </Collapsible>
                         ))}
                       </div>
                     </ScrollArea>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No differences found. The JSON objects are identical.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card className="tool-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-5 w-5" /> Comparison Options
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="ignore-order">Ignore Array Order</Label>
-                    <Switch
-                      id="ignore-order"
-                      checked={comparisonOptions.ignoreOrder}
-                      onCheckedChange={(c) => setComparisonOptions((o) => ({ ...o, ignoreOrder: c }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="ignore-whitespace">Ignore Whitespace</Label>
-                    <Switch
-                      id="ignore-whitespace"
-                      checked={comparisonOptions.ignoreWhitespace}
-                      onCheckedChange={(c) => setComparisonOptions((o) => ({ ...o, ignoreWhitespace: c }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="ignore-case">Ignore Case</Label>
-                    <Switch
-                      id="ignore-case"
-                      checked={comparisonOptions.ignoreCase}
-                      onCheckedChange={(c) => setComparisonOptions((o) => ({ ...o, ignoreCase: c }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="ignore-values">Ignore Values (Compare Structure Only)</Label>
-                    <Switch
-                      id="ignore-values"
-                      checked={comparisonOptions.ignoreValues}
-                      onCheckedChange={(c) => setComparisonOptions((o) => ({ ...o, ignoreValues: c }))}
-                    />
-                  </div>
+                  ) : null}
                 </div>
-                <div className="pt-4 border-t">
-                  <Button onClick={performComparison} className="w-full h-9 text-xs">
-                    <GitCompare className="h-4 w-4 mr-1" /> Apply Settings & Re-compare
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="actions">
-            <Card className="tool-card">
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => insertExample(1)}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Insert Example JSON 1
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => insertExample(2)}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Insert Example JSON 2
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleClear}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear All
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </TooltipProvider>
   )
 }
+
+// Helper component for settings dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog"
+
+function DialogSettings({
+  options,
+  onOptionsChange,
+}: { options: LibComparisonOptions; onOptionsChange: (opts: LibComparisonOptions) => void }) {
+  const [currentOptions, setCurrentOptions] = useState(options)
+
+  useEffect(() => {
+    setCurrentOptions(options)
+  }, [options])
+
+  const handleChange = (optionKey: keyof LibComparisonOptions, value: boolean) => {
+    setCurrentOptions((prev) => ({ ...prev, [optionKey]: value }))
+  }
+
+  const handleApply = () => {
+    onOptionsChange(currentOptions)
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="h-9">
+          <Settings2 className="h-4 w-4 mr-2" /> Settings
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Comparison Settings</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="ignoreArrayOrder" className="text-sm">
+              Ignore Array Order
+            </Label>
+            <Switch
+              id="ignoreArrayOrder"
+              checked={currentOptions.ignoreArrayOrder}
+              onCheckedChange={(c) => handleChange("ignoreArrayOrder", c)}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="ignoreCase" className="text-sm">
+              Ignore Case (for string values)
+            </Label>
+            <Switch
+              id="ignoreCase"
+              checked={currentOptions.ignoreCase}
+              onCheckedChange={(c) => handleChange("ignoreCase", c)}
+            />
+          </div>
+          {/* Add more options from LibComparisonOptions here */}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" onClick={handleApply}>
+              Apply
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Helper for diff type icon
+function DiffTypeIcon({ type }: { type: LibDifference["type"] }) {
+  switch (type) {
+    case "addition":
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case "deletion":
+      return <AlertCircle className="h-4 w-4 text-red-500" />
+    case "modification":
+      return <GitCompare className="h-4 w-4 text-blue-500" />
+    default:
+      return <Info className="h-4 w-4 text-muted-foreground" />
+  }
+}
+
+import { cn } from "@/lib/utils"
