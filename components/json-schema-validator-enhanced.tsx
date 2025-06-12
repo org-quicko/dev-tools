@@ -3,26 +3,26 @@
 import type React from "react"
 import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { Badge } from "@/components/ui/badge"
 import {
   Shield,
-  AlertCircle,
   CheckCircle,
+  AlertTriangle,
+  Trash2,
+  AlertCircle,
   ChevronDown,
   ChevronRight,
   FileJson,
-  Info,
-  Trash2,
-  AlertTriangle,
+  Download,
+  Zap,
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { SharedThreeColumnLayout, ColumnEmptyState, ColumnLoadingState } from "./shared-three-column-layout"
-import { SharedJsonInput, JsonInputActions } from "./shared-json-input"
-import { useDebounce } from "@/hooks/use-debounce"
+import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
+import { ResponsiveJsonInput, JsonInputActions } from "./responsive-json-input"
 import {
   EnhancedJsonSchemaValidator,
   type ValidationResult,
@@ -30,55 +30,7 @@ import {
   type SchemaDraft,
 } from "@/lib/schema-validator-enhanced"
 
-// Example schema for new users
-const EXAMPLE_SCHEMA = `{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "name": {
-      "type": "string",
-      "description": "The user's full name"
-    },
-    "email": {
-      "type": "string",
-      "format": "email",
-      "description": "The user's email address"
-    },
-    "age": {
-      "type": "integer",
-      "minimum": 18,
-      "description": "User's age in years"
-    },
-    "address": {
-      "type": "object",
-      "properties": {
-        "street": { "type": "string" },
-        "city": { "type": "string" },
-        "zipCode": { "type": "string", "pattern": "^\\d{5}(-\\d{4})?$" }
-      },
-      "required": ["street", "city"]
-    },
-    "tags": {
-      "type": "array",
-      "items": { "type": "string" }
-    }
-  },
-  "required": ["name", "email"]
-}`
-
-const EXAMPLE_JSON = `{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "age": 25,
-  "address": {
-    "street": "123 Main St",
-    "city": "Anytown"
-  },
-  "tags": ["user", "premium"]
-}`
-
 export function JsonSchemaValidatorEnhanced() {
-  // State
   const [jsonInput, setJsonInput] = useState("")
   const [jsonError, setJsonError] = useState<string | undefined>(undefined)
   const [jsonLoading, setJsonLoading] = useState(false)
@@ -92,8 +44,6 @@ export function JsonSchemaValidatorEnhanced() {
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
   const [isValidating, setIsValidating] = useState(false)
   const [realTimeValidation, setRealTimeValidation] = useState(true)
-  const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set())
-
   const [validatorOptions, setValidatorOptions] = useState<ValidatorOptions>({
     draft: "auto",
     strict: false,
@@ -106,13 +56,9 @@ export function JsonSchemaValidatorEnhanced() {
     resolveExternalRefs: false,
     timeout: 5000,
   })
-
+  const [expandedErrors, setExpandedErrors] = useState<Set<number>>(new Set())
   const [validator] = useState(() => new EnhancedJsonSchemaValidator(validatorOptions))
 
-  const debouncedJsonInput = useDebounce(jsonInput, 500)
-  const debouncedSchemaInput = useDebounce(schemaInput, 500)
-
-  // Validation logic
   const validateJsonCallback = useCallback(async () => {
     if (!jsonInput.trim() || !schemaInput.trim()) {
       setValidationResult(null)
@@ -127,7 +73,6 @@ export function JsonSchemaValidatorEnhanced() {
 
     setIsValidating(true)
     try {
-      // Re-initialize validator with current options
       const currentValidator = new EnhancedJsonSchemaValidator(validatorOptions)
       const result = await currentValidator.validate(jsonInput, schemaInput, validatorOptions)
       setValidationResult(result)
@@ -165,20 +110,7 @@ export function JsonSchemaValidatorEnhanced() {
       validateJsonCallback()
     }, 500)
     return () => clearTimeout(timeoutId)
-  }, [debouncedJsonInput, debouncedSchemaInput, realTimeValidation, validateJsonCallback])
-
-  // Event handlers
-  const handleJsonChange = (value: string, fileName?: string) => {
-    setJsonInput(value)
-    if (fileName) setJsonFileName(fileName)
-    setJsonError(undefined)
-  }
-
-  const handleSchemaChange = (value: string, fileName?: string) => {
-    setSchemaInput(value)
-    if (fileName) setSchemaFileName(fileName)
-    setSchemaError(undefined)
-  }
+  }, [jsonInput, schemaInput, realTimeValidation, validateJsonCallback])
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: "json" | "schema") => {
     const file = event.target.files?.[0]
@@ -190,9 +122,13 @@ export function JsonSchemaValidatorEnhanced() {
     try {
       const content = await file.text()
       if (type === "json") {
-        handleJsonChange(content, file.name)
+        setJsonInput(content)
+        setJsonFileName(file.name)
+        setJsonError(undefined)
       } else {
-        handleSchemaChange(content, file.name)
+        setSchemaInput(content)
+        setSchemaFileName(file.name)
+        setSchemaError(undefined)
       }
     } catch (err) {
       const setError = type === "json" ? setJsonError : setSchemaError
@@ -203,7 +139,7 @@ export function JsonSchemaValidatorEnhanced() {
     }
   }
 
-  const handleClearAll = () => {
+  const clearInputs = () => {
     setJsonInput("")
     setSchemaInput("")
     setJsonFileName("")
@@ -211,16 +147,25 @@ export function JsonSchemaValidatorEnhanced() {
     setValidationResult(null)
     setJsonError(undefined)
     setSchemaError(undefined)
-    setExpandedErrors(new Set())
   }
 
-  const loadExample = () => {
-    setJsonInput(EXAMPLE_JSON)
-    setSchemaInput(EXAMPLE_SCHEMA)
-    setJsonFileName("example.json")
-    setSchemaFileName("example-schema.json")
-    setJsonError(undefined)
-    setSchemaError(undefined)
+  const downloadReport = () => {
+    if (!validationResult) return
+    const report = {
+      timestamp: new Date().toISOString(),
+      validation: validationResult,
+      options: validatorOptions,
+      files: { json: jsonFileName || "untitled.json", schema: schemaFileName || "untitled-schema.json" },
+    }
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `validation-report-${new Date().toISOString().split("T")[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   const toggleErrorExpansion = (index: number) => {
@@ -232,12 +177,11 @@ export function JsonSchemaValidatorEnhanced() {
     })
   }
 
-  // Helper functions
   const getSeverityIcon = (severity: "error" | "warning") =>
     severity === "error" ? (
-      <AlertCircle className="h-3 w-3 text-red-500" />
+      <AlertCircle className="h-4 w-4 text-red-500" />
     ) : (
-      <AlertTriangle className="h-3 w-3 text-yellow-500" />
+      <AlertTriangle className="h-4 w-4 text-yellow-500" />
     )
 
   const getCategoryColor = (category: string) => {
@@ -269,14 +213,14 @@ export function JsonSchemaValidatorEnhanced() {
 
   // Top controls
   const topControls = (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <Button
           onClick={validateJsonCallback}
-          disabled={isValidating || (!jsonInput.trim() && !schemaInput.trim())}
+          disabled={isValidating || !jsonInput.trim() || !schemaInput.trim()}
           className="bg-green-600 hover:bg-green-700"
         >
-          <Shield className="h-4 w-4 mr-2" />
+          {isValidating ? <Zap className="h-4 w-4 mr-2 animate-spin" /> : <Shield className="h-4 w-4 mr-2" />}
           {isValidating ? "Validating..." : "Validate"}
         </Button>
         <div className="flex items-center gap-2">
@@ -286,12 +230,12 @@ export function JsonSchemaValidatorEnhanced() {
           </Label>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <Select
           value={validatorOptions.draft}
           onValueChange={(value: SchemaDraft) => setValidatorOptions({ ...validatorOptions, draft: value })}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-full sm:w-36">
             <SelectValue placeholder="Schema draft" />
           </SelectTrigger>
           <SelectContent>
@@ -301,257 +245,271 @@ export function JsonSchemaValidatorEnhanced() {
             <SelectItem value="2020-12">2020-12</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={handleClearAll}>
+        <Button variant="outline" onClick={clearInputs}>
           <Trash2 className="h-4 w-4 mr-2" />
-          Clear All
+          Clear
         </Button>
       </div>
     </div>
   )
 
-  // Left column (JSON)
-  const leftColumn = {
-    id: "json",
-    title: jsonFileName || "JSON Data",
-    icon: <FileJson className="h-4 w-4" />,
-    actions: (
-      <JsonInputActions
-        onCopy={() => jsonInput && navigator.clipboard.writeText(jsonInput)}
-        onUpload={() => document.getElementById("json-upload")?.click()}
-        disabled={!jsonInput}
-      />
-    ),
-    content: (
-      <SharedJsonInput
-        value={jsonInput}
-        onValueChange={handleJsonChange}
-        placeholder="Paste your JSON data here..."
-        error={jsonError}
-        isLoading={jsonLoading}
-        fileName={jsonFileName}
-        onFileUpload={(e) => handleFileUpload(e, "json")}
-        uploadId="json-upload"
-      />
-    ),
-  }
+  // Define columns
+  const columns = [
+    {
+      id: "json",
+      title: jsonFileName || "JSON Data",
+      icon: <FileJson className="h-4 w-4" />,
+      actions: (
+        <JsonInputActions
+          onCopy={() => jsonInput && navigator.clipboard.writeText(jsonInput)}
+          onDownload={() => {
+            if (!jsonInput) return
+            const fileName = jsonFileName || "data.json"
+            const blob = new Blob([jsonInput], { type: "application/json" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = fileName.endsWith(".json") ? fileName : `${fileName}.json`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          onUpload={() => document.getElementById("json-upload")?.click()}
+          disabled={!jsonInput || !!jsonError}
+        />
+      ),
+      content: (
+        <ResponsiveJsonInput
+          value={jsonInput}
+          onValueChange={(val, fName) => {
+            setJsonInput(val)
+            if (fName) setJsonFileName(fName)
+            setJsonError(undefined)
+          }}
+          placeholder="Paste JSON data here..."
+          error={jsonError}
+          isLoading={jsonLoading}
+          fileName={jsonFileName}
+          onFileUpload={(e) => handleFileUpload(e, "json")}
+          uploadId="json-upload"
+        />
+      ),
+    },
+    {
+      id: "schema",
+      title: schemaFileName || "JSON Schema",
+      icon: <Shield className="h-4 w-4" />,
+      actions: (
+        <JsonInputActions
+          onCopy={() => schemaInput && navigator.clipboard.writeText(schemaInput)}
+          onDownload={() => {
+            if (!schemaInput) return
+            const fileName = schemaFileName || "schema.json"
+            const blob = new Blob([schemaInput], { type: "application/json" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = fileName.endsWith(".json") ? fileName : `${fileName}.json`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          onUpload={() => document.getElementById("schema-upload")?.click()}
+          disabled={!schemaInput || !!schemaError}
+        />
+      ),
+      content: (
+        <ResponsiveJsonInput
+          value={schemaInput}
+          onValueChange={(val, fName) => {
+            setSchemaInput(val)
+            if (fName) setSchemaFileName(fName)
+            setSchemaError(undefined)
+          }}
+          placeholder="Paste JSON Schema here..."
+          error={schemaError}
+          isLoading={schemaLoading}
+          fileName={schemaFileName}
+          onFileUpload={(e) => handleFileUpload(e, "schema")}
+          uploadId="schema-upload"
+        />
+      ),
+    },
+    {
+      id: "results",
+      title: "Validation Results",
+      icon: <Shield className="h-4 w-4" />,
+      actions: validationResult && (
+        <Button variant="ghost" size="icon" onClick={downloadReport} className="h-7 w-7">
+          <Download className="h-3.5 w-3.5" />
+        </Button>
+      ),
+      content: (
+        <div className="h-full w-full">
+          {!validationResult && !isValidating && (
+            <ColumnEmptyState
+              icon={<Shield className="h-12 w-12" />}
+              title="Ready to Validate"
+              description="Provide JSON data and schema to validate"
+            />
+          )}
 
-  // Middle column (Schema)
-  const middleColumn = {
-    id: "schema",
-    title: schemaFileName || "JSON Schema",
-    icon: <Shield className="h-4 w-4" />,
-    actions: (
-      <JsonInputActions
-        onCopy={() => schemaInput && navigator.clipboard.writeText(schemaInput)}
-        onUpload={() => document.getElementById("schema-upload")?.click()}
-        disabled={!schemaInput}
-      />
-    ),
-    content: (
-      <SharedJsonInput
-        value={schemaInput}
-        onValueChange={handleSchemaChange}
-        placeholder="Paste your JSON Schema here..."
-        error={schemaError}
-        isLoading={schemaLoading}
-        fileName={schemaFileName}
-        onFileUpload={(e) => handleFileUpload(e, "schema")}
-        uploadId="schema-upload"
-      />
-    ),
-  }
+          {isValidating && <ColumnLoadingState message="Validating JSON against schema..." />}
 
-  // Right column (Results)
-  const rightColumn = {
-    id: "results",
-    title: "Validation Results",
-    icon: <Shield className="h-4 w-4" />,
-    content: (
-      <div className="h-full">
-        {!validationResult && !isValidating && (
-          <ColumnEmptyState
-            icon={<Info className="h-12 w-12" />}
-            title="Ready to Validate"
-            description="Input JSON and Schema to validate"
-            action={
-              <Button variant="outline" onClick={loadExample}>
-                <FileJson className="h-4 w-4 mr-2" />
-                Load Example
-              </Button>
-            }
-          />
-        )}
-
-        {isValidating && <ColumnLoadingState message="Validating JSON against schema..." />}
-
-        {validationResult && !isValidating && (
-          <div className="space-y-4">
-            {/* Summary */}
-            <div className="p-4 bg-muted/30 rounded-lg border">
-              {validationResult.isValid ? (
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">JSON is valid</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                  <AlertCircle className="h-5 w-5" />
-                  <span className="font-medium">
-                    {validationResult.errors.length} error{validationResult.errors.length !== 1 && "s"} found
-                  </span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-red-600">{validationResult.summary.totalErrors}</div>
-                  <div className="text-xs text-muted-foreground">Errors</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-yellow-600">{validationResult.summary.totalWarnings}</div>
-                  <div className="text-xs text-muted-foreground">Warnings</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-blue-600">
-                    {validationResult.summary.validatedProperties}/{validationResult.summary.totalProperties}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Properties</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-green-600">
-                    {validationResult.summary.validationTime.toFixed(1)}ms
-                  </div>
-                  <div className="text-xs text-muted-foreground">Time</div>
-                </div>
-              </div>
-
-              {validationResult.detectedDraft && (
-                <div className="mt-3 text-xs">
-                  <span className="text-muted-foreground">Detected Schema: </span>
-                  <Badge variant="outline" className="ml-1">
-                    {getDraftDisplayName(validationResult.detectedDraft)}
+          {validationResult && !isValidating && (
+            <div className="space-y-4 w-full">
+              {/* Summary */}
+              <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-2 mb-3">
+                  {validationResult.isValid ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                  )}
+                  <Badge
+                    variant={validationResult.isValid ? "default" : "destructive"}
+                    className={`text-xs ${validationResult.isValid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  >
+                    {validationResult.isValid ? "Valid" : "Invalid"}
                   </Badge>
+                  {validationResult.detectedDraft && (
+                    <Badge variant="outline" className="text-xs">
+                      {getDraftDisplayName(validationResult.detectedDraft)}
+                    </Badge>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-red-600">{validationResult.summary.totalErrors}</div>
+                    <div className="text-xs text-muted-foreground">Errors</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-yellow-600">{validationResult.summary.totalWarnings}</div>
+                    <div className="text-xs text-muted-foreground">Warnings</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-blue-600">
+                      {validationResult.summary.validatedProperties}/{validationResult.summary.totalProperties}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Properties</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-green-600">
+                      {validationResult.summary.validationTime.toFixed(1)}ms
+                    </div>
+                    <div className="text-xs text-muted-foreground">Time</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Validation Settings</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="strict-mode" className="text-xs">
+                      Strict Mode
+                    </Label>
+                    <Switch
+                      id="strict-mode"
+                      checked={validatorOptions.strict}
+                      onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, strict: c }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="all-errors" className="text-xs">
+                      Show All Errors
+                    </Label>
+                    <Switch
+                      id="all-errors"
+                      checked={validatorOptions.allErrors}
+                      onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, allErrors: c }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="validate-formats" className="text-xs">
+                      Validate Formats
+                    </Label>
+                    <Switch
+                      id="validate-formats"
+                      checked={validatorOptions.validateFormats}
+                      onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, validateFormats: c }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Errors and Warnings */}
+              {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">
+                    Issues ({validationResult.errors.length + validationResult.warnings.length})
+                  </h4>
+                  <div className="space-y-1">
+                    {[...validationResult.errors, ...validationResult.warnings].map((error, index) => (
+                      <Collapsible
+                        key={index}
+                        open={expandedErrors.has(index)}
+                        onOpenChange={() => toggleErrorExpansion(index)}
+                      >
+                        <CollapsibleTrigger className="w-full text-left p-2 rounded hover:bg-accent transition-colors border flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2 flex-grow min-w-0">
+                            {getSeverityIcon(error.severity)}
+                            <div className="flex-1 truncate">
+                              <span className="font-medium truncate" title={error.message}>
+                                {error.message}
+                              </span>{" "}
+                              <span className="text-muted-foreground truncate">
+                                ({error.instancePath || "root"} - {error.keyword})
+                              </span>
+                            </div>
+                            <Badge className={`${getCategoryColor(error.category)} text-xs px-1 py-0.5 shrink-0`}>
+                              {error.category}
+                            </Badge>
+                          </div>
+                          {expandedErrors.has(index) ? (
+                            <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3 ml-1 shrink-0" />
+                          )}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b bg-background space-y-1">
+                          {error.suggestion && (
+                            <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded">
+                              <span className="font-medium text-blue-700 dark:text-blue-300">💡 Suggestion:</span>{" "}
+                              {error.suggestion}
+                            </div>
+                          )}
+                          <div>
+                            <span className="font-medium">Data Path:</span>{" "}
+                            <code className="bg-muted p-0.5 rounded break-all">
+                              {error.dataLocation || error.instancePath || "root"}
+                            </code>
+                          </div>
+                          <div>
+                            <span className="font-medium">Schema Path:</span>{" "}
+                            <code className="bg-muted p-0.5 rounded break-all">{error.schemaLocation || "root"}</code>
+                          </div>
+                          {error.lineNumber && (
+                            <div>
+                              <span className="font-medium">Location:</span> Line {error.lineNumber}
+                              {error.columnNumber && `, Col ${error.columnNumber}`}
+                            </div>
+                          )}
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Settings */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">Validation Options</h4>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="strict-mode" className="text-xs">
-                    Strict Mode
-                  </Label>
-                  <Switch
-                    id="strict-mode"
-                    checked={validatorOptions.strict}
-                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, strict: c }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="validate-formats" className="text-xs">
-                    Validate Formats
-                  </Label>
-                  <Switch
-                    id="validate-formats"
-                    checked={validatorOptions.validateFormats}
-                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, validateFormats: c }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="coerce-types" className="text-xs">
-                    Coerce Types
-                  </Label>
-                  <Switch
-                    id="coerce-types"
-                    checked={!!validatorOptions.coerceTypes}
-                    onCheckedChange={(c) => setValidatorOptions((o) => ({ ...o, coerceTypes: c }))}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Errors List */}
-            {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">
-                  Issues ({validationResult.errors.length + validationResult.warnings.length})
-                </h4>
-                <div className="space-y-1">
-                  {[...validationResult.errors, ...validationResult.warnings].map((error, index) => (
-                    <Collapsible
-                      key={index}
-                      open={expandedErrors.has(index)}
-                      onOpenChange={() => toggleErrorExpansion(index)}
-                    >
-                      <CollapsibleTrigger className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 flex-grow min-w-0">
-                          {getSeverityIcon(error.severity)}
-                          <div className="flex-1 truncate">
-                            <span className="font-medium truncate" title={error.message}>
-                              {error.message}
-                            </span>{" "}
-                            <span className="text-muted-foreground truncate">
-                              ({error.instancePath || "root"} - {error.keyword})
-                            </span>
-                          </div>
-                          <Badge className={`${getCategoryColor(error.category)} text-xs px-1 py-0.5`}>
-                            {error.category}
-                          </Badge>
-                        </div>
-                        {expandedErrors.has(index) ? (
-                          <ChevronDown className="h-3 w-3 ml-1 shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-3 w-3 ml-1 shrink-0" />
-                        )}
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background space-y-1">
-                        {error.suggestion && (
-                          <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded">
-                            <span className="font-medium text-blue-700 dark:text-blue-300">💡 Suggestion:</span>{" "}
-                            {error.suggestion}
-                          </div>
-                        )}
-                        <div>
-                          <span className="font-medium">Data Path:</span>{" "}
-                          <code className="bg-muted p-0.5 rounded break-all">
-                            {error.dataLocation || error.instancePath || "root"}
-                          </code>
-                        </div>
-                        <div>
-                          <span className="font-medium">Schema Path:</span>{" "}
-                          <code className="bg-muted p-0.5 rounded break-all">{error.schemaLocation || "root"}</code>
-                        </div>
-                        {error.lineNumber && (
-                          <div>
-                            <span className="font-medium">Location:</span> Line {error.lineNumber}
-                            {error.columnNumber && `, Col ${error.columnNumber}`}
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    ),
-  }
+          )}
+        </div>
+      ),
+    },
+  ]
 
   return (
     <TooltipProvider>
-      <SharedThreeColumnLayout
-        toolTitle="JSON Schema Validator"
-        toolIcon={<Shield className="h-6 w-6" />}
-        toolDescription="Validate JSON data against JSON Schema"
-        leftColumn={leftColumn}
-        middleColumn={middleColumn}
-        rightColumn={rightColumn}
-        topControls={topControls}
-      />
+      <FlexibleToolLayout columns={columns} topControls={topControls} className="w-full" />
     </TooltipProvider>
   )
 }

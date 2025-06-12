@@ -22,8 +22,8 @@ import {
   Search,
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { SharedThreeColumnLayout, ColumnEmptyState, ColumnLoadingState } from "./shared-three-column-layout"
-import { SharedJsonInput, JsonInputActions } from "./shared-json-input"
+import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
+import { ResponsiveJsonInput, JsonInputActions } from "./responsive-json-input"
 import { compareJsons, type ComparisonSettings } from "@/lib/json-compare"
 import { prettifyJson } from "@/lib/json-utils"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -280,8 +280,8 @@ export function JsonComparator() {
 
   // Top controls
   const topControls = (
-    <div className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <Button
           onClick={performComparison}
           disabled={isComparing || (!json1.trim() && !json2.trim())}
@@ -297,12 +297,12 @@ export function JsonComparator() {
           </Label>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <Select
           value={settings.indentation.toString()}
           onValueChange={(value) => setSettings((prev) => ({ ...prev, indentation: Number.parseInt(value) }))}
         >
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-full sm:w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -319,289 +319,287 @@ export function JsonComparator() {
     </div>
   )
 
-  // Left column (JSON 1)
-  const leftColumn = {
-    id: "json1",
-    title: json1Name || "JSON 1",
-    icon: <FileJson className="h-4 w-4" />,
-    actions: (
-      <JsonInputActions
-        onFormat={() => handleFormatJson("json1")}
-        onCopy={() => json1 && navigator.clipboard.writeText(json1)}
-        onDownload={() => handleDownload("json1")}
-        onUpload={() => document.getElementById("json1-upload")?.click()}
-        disabled={!json1 || !!json1Error}
-      />
-    ),
-    content: (
-      <SharedJsonInput
-        value={json1}
-        onValueChange={handleJson1Change}
-        placeholder="Paste your first JSON here..."
-        error={json1Error}
-        isLoading={json1Loading}
-        fileName={json1Name}
-        comparisonResult={jsonInputComparisonResultProp}
-        side="left"
-        highlightedPath={highlightedPath}
-        onFileUpload={(e) => handleFileUpload(e, "json1")}
-        uploadId="json1-upload"
-      />
-    ),
-  }
-
-  // Middle column (JSON 2)
-  const middleColumn = {
-    id: "json2",
-    title: json2Name || "JSON 2",
-    icon: <FileJson className="h-4 w-4" />,
-    actions: (
-      <JsonInputActions
-        onFormat={() => handleFormatJson("json2")}
-        onCopy={() => json2 && navigator.clipboard.writeText(json2)}
-        onDownload={() => handleDownload("json2")}
-        onUpload={() => document.getElementById("json2-upload")?.click()}
-        disabled={!json2 || !!json2Error}
-      />
-    ),
-    content: (
-      <SharedJsonInput
-        value={json2}
-        onValueChange={handleJson2Change}
-        placeholder="Paste your second JSON here..."
-        error={json2Error}
-        isLoading={json2Loading}
-        fileName={json2Name}
-        comparisonResult={jsonInputComparisonResultProp}
-        side="right"
-        highlightedPath={highlightedPath}
-        onFileUpload={(e) => handleFileUpload(e, "json2")}
-        uploadId="json2-upload"
-      />
-    ),
-  }
-
-  // Right column (Results)
-  const rightColumn = {
-    id: "results",
-    title: "Comparison Results",
-    icon: <Search className="h-4 w-4" />,
-    actions: comparisonResult && (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => {
-          const report = JSON.stringify(comparisonResult, null, 2)
-          const blob = new Blob([report], { type: "application/json" })
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement("a")
-          a.href = url
-          a.download = "comparison-report.json"
-          a.click()
-          URL.revokeObjectURL(url)
-        }}
-        className="h-7 w-7"
-      >
-        <Download className="h-3.5 w-3.5" />
-      </Button>
-    ),
-    content: (
-      <div className="h-full">
-        {!comparisonResult && !isComparing && (
-          <ColumnEmptyState
-            icon={<Info className="h-12 w-12" />}
-            title="Ready to Compare"
-            description="Input JSON in both panels to see differences"
-            action={
-              <div className="space-y-2">
-                <Button variant="outline" onClick={() => loadPreset("basic")}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Load Basic Example
-                </Button>
-                <Button variant="outline" onClick={() => loadPreset("arrays")}>
-                  <FileJson className="h-4 w-4 mr-2" />
-                  Load Array Example
-                </Button>
-              </div>
-            }
-          />
-        )}
-
-        {isComparing && <ColumnLoadingState message="Comparing JSON objects..." />}
-
-        {comparisonResult && !isComparing && (
-          <div className="space-y-4">
-            {/* Summary */}
-            <div className="p-4 bg-muted/30 rounded-lg border">
-              {comparisonResult.areEqual ? (
-                <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">JSON objects are identical</span>
+  // Define columns
+  const columns = [
+    {
+      id: "json1",
+      title: json1Name || "JSON 1",
+      icon: <FileJson className="h-4 w-4" />,
+      actions: (
+        <JsonInputActions
+          onFormat={() => handleFormatJson("json1")}
+          onCopy={() => json1 && navigator.clipboard.writeText(json1)}
+          onDownload={() => handleDownload("json1")}
+          onUpload={() => document.getElementById("json1-upload")?.click()}
+          disabled={!json1 || !!json1Error}
+        />
+      ),
+      content: (
+        <ResponsiveJsonInput
+          value={json1}
+          onValueChange={handleJson1Change}
+          placeholder="Paste your first JSON here..."
+          error={json1Error}
+          isLoading={json1Loading}
+          fileName={json1Name}
+          comparisonResult={jsonInputComparisonResultProp}
+          side="left"
+          highlightedPath={highlightedPath}
+          onFileUpload={(e) => handleFileUpload(e, "json1")}
+          uploadId="json1-upload"
+        />
+      ),
+    },
+    {
+      id: "json2",
+      title: json2Name || "JSON 2",
+      icon: <FileJson className="h-4 w-4" />,
+      actions: (
+        <JsonInputActions
+          onFormat={() => handleFormatJson("json2")}
+          onCopy={() => json2 && navigator.clipboard.writeText(json2)}
+          onDownload={() => handleDownload("json2")}
+          onUpload={() => document.getElementById("json2-upload")?.click()}
+          disabled={!json2 || !!json2Error}
+        />
+      ),
+      content: (
+        <ResponsiveJsonInput
+          value={json2}
+          onValueChange={handleJson2Change}
+          placeholder="Paste your second JSON here..."
+          error={json2Error}
+          isLoading={json2Loading}
+          fileName={json2Name}
+          comparisonResult={jsonInputComparisonResultProp}
+          side="right"
+          highlightedPath={highlightedPath}
+          onFileUpload={(e) => handleFileUpload(e, "json2")}
+          uploadId="json2-upload"
+        />
+      ),
+    },
+    {
+      id: "results",
+      title: "Comparison Results",
+      icon: <Search className="h-4 w-4" />,
+      actions: comparisonResult && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            const report = JSON.stringify(comparisonResult, null, 2)
+            const blob = new Blob([report], { type: "application/json" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = "comparison-report.json"
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          className="h-7 w-7"
+        >
+          <Download className="h-3.5 w-3.5" />
+        </Button>
+      ),
+      content: (
+        <div className="h-full w-full">
+          {!comparisonResult && !isComparing && (
+            <ColumnEmptyState
+              icon={<Info className="h-12 w-12" />}
+              title="Ready to Compare"
+              description="Input JSON in both panels to see differences"
+              action={
+                <div className="space-y-2 w-full max-w-xs">
+                  <Button variant="outline" onClick={() => loadPreset("basic")} className="w-full">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Load Basic Example
+                  </Button>
+                  <Button variant="outline" onClick={() => loadPreset("arrays")} className="w-full">
+                    <FileJson className="h-4 w-4 mr-2" />
+                    Load Array Example
+                  </Button>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                  <AlertCircle className="h-5 w-5" />
-                  <span className="font-medium">{summary.total} differences found</span>
+              }
+            />
+          )}
+
+          {isComparing && <ColumnLoadingState message="Comparing JSON objects..." />}
+
+          {comparisonResult && !isComparing && (
+            <div className="space-y-4 w-full">
+              {/* Summary */}
+              <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border">
+                {comparisonResult.areEqual ? (
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium text-sm">JSON objects are identical</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                    <AlertCircle className="h-5 w-5" />
+                    <span className="font-medium text-sm">{summary.total} differences found</span>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-blue-600">{summary.modifications}</div>
+                    <div className="text-xs text-muted-foreground">Modified</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-green-600">{summary.additions}</div>
+                    <div className="text-xs text-muted-foreground">Added</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-red-600">{summary.deletions}</div>
+                    <div className="text-xs text-muted-foreground">Deleted</div>
+                  </div>
+                  <div className="text-center p-2 bg-background rounded">
+                    <div className="text-lg font-bold text-gray-600">{summary.unchanged}</div>
+                    <div className="text-xs text-muted-foreground">Unchanged</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Comparison Settings</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="sort-keys" className="text-xs">
+                      Sort Keys
+                    </Label>
+                    <Switch
+                      id="sort-keys"
+                      checked={settings.sortKeys}
+                      onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, sortKeys: checked }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="ignore-order" className="text-xs">
+                      Ignore Array Order
+                    </Label>
+                    <Switch
+                      id="ignore-order"
+                      checked={settings.ignoreOrder}
+                      onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreOrder: checked }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="fuzzy-match" className="text-xs">
+                      Fuzzy Matching
+                    </Label>
+                    <Switch
+                      id="fuzzy-match"
+                      checked={settings.fuzzyMatch}
+                      onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, fuzzyMatch: checked }))}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="ignore-case" className="text-xs">
+                      Ignore Case
+                    </Label>
+                    <Switch
+                      id="ignore-case"
+                      checked={settings.ignoreCase}
+                      onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreCase: checked }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Differences List */}
+              {summary.total > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Differences ({summary.total})</h4>
+                  <div className="space-y-1">
+                    {comparisonResult.differences.map((diff, index) => (
+                      <Collapsible
+                        key={`${diff.path}-${index}`}
+                        open={expandedDiffs.has(diff.path)}
+                        onOpenChange={() => toggleDiffExpansion(diff.path)}
+                      >
+                        <CollapsibleTrigger
+                          className={cn(
+                            "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between text-xs",
+                            highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
+                          )}
+                        >
+                          <div className="flex items-center gap-2 truncate min-w-0">
+                            <DiffTypeIcon type={diff.type} />
+                            <span className="font-mono truncate" title={diff.path || "Root"}>
+                              {diff.path || "Root"}
+                            </span>
+                          </div>
+                          {expandedDiffs.has(diff.path) ? (
+                            <ChevronDown className="h-3 w-3 shrink-0" />
+                          ) : (
+                            <ChevronRight className="h-3 w-3 shrink-0" />
+                          )}
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background">
+                          <div className="space-y-1">
+                            <p className="font-medium capitalize">
+                              {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
+                            </p>
+                            {diff.message && <p className="text-muted-foreground">{diff.message}</p>}
+                            {diff.type === "modification" && (
+                              <div className="space-y-1">
+                                <div>
+                                  <Badge variant="outline" className="text-xs mr-1">
+                                    Before
+                                  </Badge>
+                                  <code className="bg-muted p-1 rounded text-xs break-all">
+                                    {JSON.stringify(diff.oldValue)}
+                                  </code>
+                                </div>
+                                <div>
+                                  <Badge variant="outline" className="text-xs mr-1">
+                                    After
+                                  </Badge>
+                                  <code className="bg-muted p-1 rounded text-xs break-all">
+                                    {JSON.stringify(diff.newValue)}
+                                  </code>
+                                </div>
+                              </div>
+                            )}
+                            {diff.type === "addition" && (
+                              <div>
+                                <Badge variant="outline" className="text-xs mr-1">
+                                  Added
+                                </Badge>
+                                <code className="bg-muted p-1 rounded text-xs break-all">
+                                  {JSON.stringify(diff.newValue)}
+                                </code>
+                              </div>
+                            )}
+                            {diff.type === "deletion" && (
+                              <div>
+                                <Badge variant="outline" className="text-xs mr-1">
+                                  Removed
+                                </Badge>
+                                <code className="bg-muted p-1 rounded text-xs break-all">
+                                  {JSON.stringify(diff.oldValue)}
+                                </code>
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    ))}
+                  </div>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-blue-600">{summary.modifications}</div>
-                  <div className="text-xs text-muted-foreground">Modified</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-green-600">{summary.additions}</div>
-                  <div className="text-xs text-muted-foreground">Added</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-red-600">{summary.deletions}</div>
-                  <div className="text-xs text-muted-foreground">Deleted</div>
-                </div>
-                <div className="text-center p-2 bg-background rounded">
-                  <div className="text-lg font-bold text-gray-600">{summary.unchanged}</div>
-                  <div className="text-xs text-muted-foreground">Unchanged</div>
-                </div>
-              </div>
             </div>
-
-            {/* Settings */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">Comparison Settings</h4>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="sort-keys" className="text-xs">
-                    Sort Keys
-                  </Label>
-                  <Switch
-                    id="sort-keys"
-                    checked={settings.sortKeys}
-                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, sortKeys: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="ignore-order" className="text-xs">
-                    Ignore Array Order
-                  </Label>
-                  <Switch
-                    id="ignore-order"
-                    checked={settings.ignoreOrder}
-                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreOrder: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="fuzzy-match" className="text-xs">
-                    Fuzzy Matching
-                  </Label>
-                  <Switch
-                    id="fuzzy-match"
-                    checked={settings.fuzzyMatch}
-                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, fuzzyMatch: checked }))}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="ignore-case" className="text-xs">
-                    Ignore Case
-                  </Label>
-                  <Switch
-                    id="ignore-case"
-                    checked={settings.ignoreCase}
-                    onCheckedChange={(checked) => setSettings((prev) => ({ ...prev, ignoreCase: checked }))}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Differences List */}
-            {summary.total > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Differences ({summary.total})</h4>
-                <div className="space-y-1">
-                  {comparisonResult.differences.map((diff, index) => (
-                    <Collapsible
-                      key={`${diff.path}-${index}`}
-                      open={expandedDiffs.has(diff.path)}
-                      onOpenChange={() => toggleDiffExpansion(diff.path)}
-                    >
-                      <CollapsibleTrigger
-                        className={cn(
-                          "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between text-xs",
-                          highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
-                        )}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <DiffTypeIcon type={diff.type} />
-                          <span className="font-mono truncate" title={diff.path || "Root"}>
-                            {diff.path || "Root"}
-                          </span>
-                        </div>
-                        {expandedDiffs.has(diff.path) ? (
-                          <ChevronDown className="h-3 w-3" />
-                        ) : (
-                          <ChevronRight className="h-3 w-3" />
-                        )}
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background">
-                        <div className="space-y-1">
-                          <p className="font-medium capitalize">
-                            {diff.type} at <span className="font-mono">{diff.path || "Root"}</span>
-                          </p>
-                          {diff.message && <p className="text-muted-foreground">{diff.message}</p>}
-                          {diff.type === "modification" && (
-                            <div className="space-y-1">
-                              <div>
-                                <Badge variant="outline" className="text-xs mr-1">
-                                  Before
-                                </Badge>
-                                <code className="bg-muted p-1 rounded text-xs">{JSON.stringify(diff.oldValue)}</code>
-                              </div>
-                              <div>
-                                <Badge variant="outline" className="text-xs mr-1">
-                                  After
-                                </Badge>
-                                <code className="bg-muted p-1 rounded text-xs">{JSON.stringify(diff.newValue)}</code>
-                              </div>
-                            </div>
-                          )}
-                          {diff.type === "addition" && (
-                            <div>
-                              <Badge variant="outline" className="text-xs mr-1">
-                                Added
-                              </Badge>
-                              <code className="bg-muted p-1 rounded text-xs">{JSON.stringify(diff.newValue)}</code>
-                            </div>
-                          )}
-                          {diff.type === "deletion" && (
-                            <div>
-                              <Badge variant="outline" className="text-xs mr-1">
-                                Removed
-                              </Badge>
-                              <code className="bg-muted p-1 rounded text-xs">{JSON.stringify(diff.oldValue)}</code>
-                            </div>
-                          )}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    ),
-  }
+          )}
+        </div>
+      ),
+    },
+  ]
 
   return (
     <TooltipProvider>
-      <SharedThreeColumnLayout
-        toolTitle="JSON Comparator"
-        toolIcon={<GitCompare className="h-6 w-6" />}
-        toolDescription="Compare JSON objects and identify differences"
-        leftColumn={leftColumn}
-        middleColumn={middleColumn}
-        rightColumn={rightColumn}
-        topControls={topControls}
-      />
+      <FlexibleToolLayout columns={columns} topControls={topControls} className="w-full" />
     </TooltipProvider>
   )
 }
