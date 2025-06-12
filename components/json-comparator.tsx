@@ -91,54 +91,71 @@ const PRESET_EXAMPLES = {
 export function JsonComparator() {
   // State
   const [json1, setJson1] = useState(`{
-  "data": {
-    "userProfile": {
-      "personalInfo": {
-        "name": {
-          "firstName": "John",
-          "lastName": "Doe"
-        },
-        "address": {
-          "street": "123 Main Street",
-          "city": "Anytown",
-          "state": "CA",
-          "zipCode": "90210",
-          "country": "USA",
-          "coordinates": {
-            "latitude": 34.0522,
-            "longitude": -118.2437
+  "ITR": {
+    "ITR1": {
+      "CreationInfo": {
+        "Digest": "ABC123",
+        "IntermediaryCity": "Mumbai"
+      },
+      "ITR1_IncomeDeductions": {
+        "UsrDeductUndChapVIA": {
+          "Section80C": {
+            "Sec80CCDEmployeeOrSE": 150000,
+            "Sec80CCC": 0,
+            "Sec80CCDEmployer": 50000
+          },
+          "Section80D": {
+            "Sec80DHealthInsPremium": {
+              "SeniorCitizenFlag": "N",
+              "SelfAndFamily": 25000,
+              "ParentsU60": 0,
+              "ParentsO60": 0
+            }
           }
         },
-        "contact": {
-          "email": "john.doe@example.com",
-          "phone": {
-            "home": "555-123-4567",
-            "work": "555-987-6543"
+        "AllwncExemptUs10": {
+          "SalaryExemptUs10": {
+            "ExemptSalaryUs10": {
+              "NatureOfAllowance": "HRA",
+              "ExemptAmount": 120000
+            }
           }
         }
+      }
+    }
+  }
+}`)
+
+  const [json2, setJson2] = useState(`{
+  "ITR": {
+    "ITR1": {
+      "CreationInfo": {
+        "Digest": "XYZ789",
+        "IntermediaryCity": "Delhi"
       },
-      "preferences": {
-        "theme": "dark",
-        "notifications": {
-          "email": true,
-          "sms": false,
-          "push": true
+      "ITR1_IncomeDeductions": {
+        "UsrDeductUndChapVIA": {
+          "Section80C": {
+            "Sec80CCDEmployeeOrSE": 100000,
+            "Sec80CCC": 25000,
+            "Sec80CCDEmployer": 50000
+          },
+          "Section80D": {
+            "Sec80DHealthInsPremium": {
+              "SeniorCitizenFlag": "Y",
+              "SelfAndFamily": 50000,
+              "ParentsU60": 25000,
+              "ParentsO60": 50000
+            }
+          }
         },
-        "language": "en-US",
-        "privacySettings": {
-          "dataSharing": false,
-          "locationTracking": true,
-          "adPersonalization": false
-        }
-      },
-      "accountStatus": {
-        "isActive": true,
-        "lastLogin": "2025-06-12T10:00:00Z",
-        "subscription": {
-          "type": "premium",
-          "startDate": "2024-01-01",
-          "endDate": "2025-01-01",
-          "autoRenew": true
+        "AllwncExemptUs10": {
+          "SalaryExemptUs10": {
+            "ExemptSalaryUs10": {
+              "NatureOfAllowance": "Transport",
+              "ExemptAmount": 19200
+            }
+          }
         }
       }
     }
@@ -148,60 +165,6 @@ export function JsonComparator() {
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
 
-  const [json2, setJson2] = useState(`{
-  "data": {
-    "userProfile": {
-      "personalInfo": {
-        "name": {
-          "firstName": "Jane",
-          "lastName": "Smith"
-        },
-        "address": {
-          "street": "456 Oak Avenue",
-          "city": "Otherville",
-          "state": "NY",
-          "zipCode": "10001",
-          "country": "USA",
-          "coordinates": {
-            "latitude": 40.7128,
-            "longitude": -74.0060
-          }
-        },
-        "contact": {
-          "email": "jane.smith@example.com",
-          "phone": {
-            "home": "555-111-2222",
-            "mobile": "555-333-4444"
-          }
-        }
-      },
-      "preferences": {
-        "theme": "light",
-        "notifications": {
-          "email": true,
-          "sms": true,
-          "push": false
-        },
-        "language": "es-ES",
-        "privacySettings": {
-          "dataSharing": true,
-          "locationTracking": false,
-          "adPersonalization": true
-        }
-      },
-      "accountStatus": {
-        "isActive": false,
-        "lastLogin": "2025-06-12T11:30:00Z",
-        "subscription": {
-          "type": "basic",
-          "startDate": "2023-07-15",
-          "endDate": "2024-07-15",
-          "autoRenew": false
-        }
-      }
-    }
-  }
-}`)
   const [json2Name, setJson2Name] = useState("")
   const [json2Error, setJson2Error] = useState<string | undefined>(undefined)
   const [json2Loading, setJson2Loading] = useState(false)
@@ -627,13 +590,13 @@ export function JsonComparator() {
                       >
                         <CollapsibleTrigger
                           className={cn(
-                            "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-center justify-between text-xs",
+                            "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-start justify-between text-xs gap-2",
                             highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
                           )}
                         >
-                          <div className="flex items-center gap-2 truncate min-w-0">
-                            <DiffTypeIcon type={diff.type} />
-                            <span className="font-mono break-all" title={diff.path || "Root"}>
+                          <div className="flex items-start gap-2 flex-1 min-w-0">
+                            <DiffTypeIcon type={diff.type} className="shrink-0 mt-0.5" />
+                            <span className="font-mono break-all text-left leading-tight" title={diff.path || "Root"}>
                               {diff.path || "Root"}
                             </span>
                           </div>
@@ -711,15 +674,16 @@ export function JsonComparator() {
 }
 
 // Helper component for diff type icons
-function DiffTypeIcon({ type }: { type: "addition" | "deletion" | "modification" }) {
+function DiffTypeIcon({ type, className }: { type: "addition" | "deletion" | "modification"; className?: string }) {
+  const iconClass = cn("h-3 w-3", className)
   switch (type) {
     case "addition":
-      return <CheckCircle className="h-3 w-3 text-green-500" />
+      return <CheckCircle className={cn(iconClass, "text-green-500")} />
     case "deletion":
-      return <AlertCircle className="h-3 w-3 text-red-500" />
+      return <AlertCircle className={cn(iconClass, "text-red-500")} />
     case "modification":
-      return <GitCompare className="h-3 w-3 text-blue-500" />
+      return <GitCompare className={cn(iconClass, "text-blue-500")} />
     default:
-      return <Info className="h-3 w-3 text-muted-foreground" />
+      return <Info className={cn(iconClass, "text-muted-foreground")} />
   }
 }
