@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   // Ensure component is mounted before rendering UI that depends on theme
@@ -15,17 +15,13 @@ export function ThemeToggle() {
     setMounted(true)
   }, [])
 
-  // Render a placeholder or null until mounted to prevent hydration mismatches
   if (!mounted) {
     return (
-      <Button variant="outline" size="icon" disabled>
+      <Button variant="outline" size="icon" className="relative">
         <Sun className="h-[1.2rem] w-[1.2rem]" />
+        <span className="sr-only">Toggle theme</span>
       </Button>
     )
-  }
-
-  const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme)
   }
 
   return (
@@ -37,21 +33,18 @@ export function ThemeToggle() {
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={() => handleThemeChange("light")} className={theme === "light" ? "bg-accent" : ""}>
+      <DropdownMenuContent align="end" className="z-50">
+        <DropdownMenuItem onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
-          Light
-          {theme === "light" && <span className="ml-auto">✓</span>}
+          <span>Light</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleThemeChange("dark")} className={theme === "dark" ? "bg-accent" : ""}>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" />
-          Dark
-          {theme === "dark" && <span className="ml-auto">✓</span>}
+          <span>Dark</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleThemeChange("system")} className={theme === "system" ? "bg-accent" : ""}>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
           <Monitor className="mr-2 h-4 w-4" />
-          System
-          {theme === "system" && <span className="ml-auto">✓</span>}
+          <span>System</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

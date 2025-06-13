@@ -44,20 +44,19 @@ export function FlexibleToolLayout({ columns, topControls, className }: Flexible
   const gridCols = columns.length === 2 ? "grid-cols-2" : columns.length === 3 ? "grid-cols-3" : "grid-cols-1"
 
   return (
-    <div className={cn("flex flex-col w-full h-full", className)}>
+    <div className={cn("flex flex-col w-full h-full max-h-[calc(100vh-8rem)]", className)}>
       {topControls && <div className="mb-4">{topControls}</div>}
 
-      <div className={cn("flex-1 flex flex-col md:grid gap-4 min-h-0", gridCols)}>
+      <div className={cn("flex-1 flex flex-col md:grid gap-4 min-h-0 max-h-full", gridCols)}>
         {columns.map((column, index) => (
           <Card
             key={column.id}
             className={cn(
-              "flex-1 flex flex-col min-h-0 overflow-hidden",
+              "flex-1 flex flex-col min-h-0 max-h-full overflow-hidden",
               isMobile && activeTab !== column.id && "hidden",
-              index < columns.length - 1 && "md:border-r", // Apply border-r to all but the last column
             )}
           >
-            <CardHeader className="p-3 sm:p-4 flex flex-row items-center space-y-0 gap-2 border-b">
+            <CardHeader className="p-3 sm:p-4 flex flex-row items-center space-y-0 gap-2 border-b shrink-0">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {column.icon && <span className="text-muted-foreground">{column.icon}</span>}
                 <CardTitle className="text-base truncate">{column.title}</CardTitle>

@@ -159,27 +159,10 @@ async function createComparisonSheet(
         }
       })
       if (headerRow && typeof headerRow === "object") {
-        headerRow.height = 30
+        headerRow.height = 30 // Fixed height for header row
       }
     } catch (styleError) {
       console.warn("Header styling failed, continuing with basic formatting:", styleError)
-    }
-
-    // Set up columns with auto width configuration
-    try {
-      const columnConfigs = headers.map((header, index) => {
-        let width = 15 // Default width
-        if (header.includes("JSON Path")) width = 50 // Max width for JSON Path, will be overridden by autoWidth if smaller
-        if (header.includes("Line")) width = 12
-
-        return { key: `col${index}`, width, autoWidth: true } // Enable auto width for all columns
-      })
-
-      if (worksheet.columns) {
-        worksheet.columns = columnConfigs
-      }
-    } catch (columnError) {
-      console.warn("Column configuration failed, using default widths:", columnError)
     }
 
     // Add data rows
@@ -243,8 +226,8 @@ async function createComparisonSheet(
               }
             })
 
-            // Auto-height for rows
-            excelRow.height = -1 // Auto height
+            // Ensure row has a minimum height
+            excelRow.height = Math.max(20, excelRow.height || 0) // Minimum height of 20
           }
         } catch (rowStyleError) {
           console.warn(`Row ${index} styling failed, continuing:`, rowStyleError)
@@ -275,17 +258,44 @@ async function createComparisonSheet(
       console.warn("Header freeze failed:", freezeError)
     }
 
-    // Auto-fit columns after all data is added - REMOVED ARBITRARY WIDTH CAP
+    // Calculate column widths based on content
     try {
-      worksheet.columns.forEach((column: any) => {
-        if (column.autoWidth) {
-          // ExcelJS autoWidth calculates based on content.
-          // We can add a small padding if needed, but generally autoWidth is sufficient.
-          // For example: column.width = (column.width || 10) + 2;
+      // First pass: get max content length for each column
+      const columnWidths = new Array(headers.length).fill(0)
+
+      // Start with headers
+      headers.forEach((header, i) => {
+        columnWidths[i] = Math.max(columnWidths[i], header.length)
+      })
+
+      // Then check data
+      reportData.forEach((row) => {
+        const rowData = [row.changeType, row.jsonPath, row.key]
+        if (config.includeLineNumbers !== false) rowData.push(String(row.json1Line || ""))
+        rowData.push(row.json1Value)
+        if (config.includeLineNumbers !== false) rowData.push(String(row.json2Line || ""))
+        rowData.push(row.json2Value)
+
+        rowData.forEach((cell, i) => {
+          if (i < columnWidths.length) {
+            const cellStr = String(cell || "")
+            // Limit the calculation to avoid excessive width
+            const effectiveLength = Math.min(100, cellStr.length)
+            columnWidths[i] = Math.max(columnWidths[i], effectiveLength)
+          }
+        })
+      })
+
+      // Apply calculated widths with some padding
+      worksheet.columns.forEach((column: any, i) => {
+        if (i < columnWidths.length) {
+          // Convert character count to approximate column width
+          // Add padding and ensure minimum width
+          column.width = Math.max(10, Math.min(100, columnWidths[i] * 1.2))
         }
       })
-    } catch (autoFitError) {
-      console.warn("Column auto-fit failed:", autoFitError)
+    } catch (widthError) {
+      console.warn("Column width calculation failed:", widthError)
     }
   } catch (error) {
     console.error("Comparison sheet creation failed:", error)
@@ -385,10 +395,32 @@ async function createSummarySheet(
         currentRow++
       })
 
-      // Set column widths - REMOVED ARBITRARY WIDTH CAP
-      worksheet.columns.forEach((column: any) => {
-        column.autoWidth = true
+      // Calculate column widths based on content
+      const columnWidths = [0, 0, 0, 0, 0] // For the 5 columns in the breakdown table
+
+      // Check headers
+      breakdownHeaders.forEach((header, i) => {
+        columnWidths[i] = Math.max(columnWidths[i], header.length)
       })
+
+      // Check section names and values
+      Object.entries(summaryData.topLevelBreakdown).forEach(([section, counts]) => {
+        columnWidths[0] = Math.max(columnWidths[0], section.length)
+        // Other columns are numbers, so they won't be very wide
+      })
+
+      // Apply calculated widths with some padding
+      for (let i = 0; i < columnWidths.length; i++) {
+        if (columnWidths[i] > 0) {
+          worksheet.getColumn(i + 1).width = Math.max(10, Math.min(50, columnWidths[i] * 1.2))
+        }
+      }
+
+      // Set minimum row height for all rows
+      for (let i = 1; i <= currentRow; i++) {
+        const row = worksheet.getRow(i)
+        row.height = Math.max(20, row.height || 0)
+      }
     } catch (contentError) {
       console.warn("Summary content creation failed:", contentError)
       // Add basic content as fallback

@@ -12,7 +12,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  // Removed SidebarTrigger import
 } from "@/components/ui/sidebar"
 import { FileJson, GitCompare, FileText, Code } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -32,15 +31,14 @@ export function AppSidebarNav() {
   const pathname = usePathname()
 
   return (
-    <Sidebar className="border-r border-border" collapsible="icon">
-      <SidebarHeader className="p-4 flex items-center justify-between">
+    <Sidebar className="border-r border-border">
+      <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Code className="h-5 w-5" />
           </div>
           <span className="text-lg font-semibold text-foreground">Dev Tools</span>
         </Link>
-        {/* Removed SidebarTrigger from here */}
       </SidebarHeader>
       <SidebarContent className="p-4">
         {navGroups.map((group) => (

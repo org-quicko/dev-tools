@@ -47,12 +47,12 @@ export function SidebarProvider({ children, defaultOpen = true, collapsible = "d
 
 // 2. Sidebar Component
 const sidebarVariants = cva(
-  "flex flex-col h-full bg-card text-card-foreground transition-all duration-200 ease-in-out",
+  "fixed md:relative z-30 flex flex-col h-screen bg-background text-foreground transition-all duration-300 ease-in-out",
   {
     variants: {
       isOpen: {
-        true: "w-64",
-        false: "w-16",
+        true: "w-64 translate-x-0",
+        false: "w-16 translate-x-0",
       },
       collapsible: {
         default: "w-64", // Fixed width if not collapsible
@@ -147,7 +147,7 @@ export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenu
         size={isCollapsible && !isOpen ? "icon" : "default"}
         className={cn(
           "w-full justify-start",
-          isCollapsible && !isOpen && "w-10 h-10", // Ensure icon-only button is square
+          isCollapsible && !isOpen && "w-10 h-10 p-0", // Ensure icon-only button is square
           isActive && "bg-accent text-accent-foreground",
           className,
         )}
@@ -210,14 +210,35 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttribute
       <div
         ref={ref}
         className={cn(
-          "flex-1 transition-all duration-200 ease-in-out",
-          isCollapsible && isOpen && "ml-64", // Adjust margin based on sidebar width
-          isCollapsible && !isOpen && "ml-16", // Adjust margin for collapsed state
+          "flex-1 transition-all duration-300 ease-in-out",
+          isCollapsible && isOpen && "md:ml-64", // Adjust margin based on sidebar width
+          isCollapsible && !isOpen && "md:ml-16", // Adjust margin for collapsed state
           className,
         )}
+        style={{ width: "100%" }}
         {...props}
       />
     )
   },
 )
 SidebarInset.displayName = "SidebarInset"
+
+// 13. Sidebar Overlay (for mobile)
+export const SidebarOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => {
+    const { isOpen, setIsOpen } = useSidebar()
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "fixed inset-0 z-20 bg-background/80 backdrop-blur-sm transition-all duration-300",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
+          className,
+        )}
+        onClick={() => setIsOpen(false)}
+        {...props}
+      />
+    )
+  },
+)
+SidebarOverlay.displayName = "SidebarOverlay"
