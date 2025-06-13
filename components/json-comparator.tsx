@@ -384,7 +384,7 @@ export function JsonComparator() {
     if (!comparisonResult) return null
 
     return (
-      <div className="flex items-center gap-2 mt-4 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mt-4 mb-2">
         <Button
           size="sm"
           variant="outline"
@@ -514,6 +514,7 @@ export function JsonComparator() {
       id: "results",
       title: "Comparison Results",
       icon: <Search className="h-4 w-4" />,
+      // Removed the actions prop here as export buttons are now in content
       content: (
         <div className="h-full w-full">
           {!comparisonResult && !isComparing && (
