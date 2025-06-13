@@ -93,77 +93,8 @@ const PRESET_EXAMPLES = {
 
 export function JsonComparator() {
   // State
-  const [json1, setJson1] = useState(`{
-  "ITR": {
-    "ITR1": {
-      "CreationInfo": {
-        "Digest": "ABC123",
-        "IntermediaryCity": "Mumbai"
-      },
-      "ITR1_IncomeDeductions": {
-        "UsrDeductUndChapVIA": {
-          "Section80C": {
-            "Sec80CCDEmployeeOrSE": 150000,
-            "Sec80CCC": 0,
-            "Sec80CCDEmployer": 50000
-          },
-          "Section80D": {
-            "Sec80DHealthInsPremium": {
-              "SeniorCitizenFlag": "N",
-              "SelfAndFamily": 25000,
-              "ParentsU60": 0,
-              "ParentsO60": 0
-            }
-          }
-        },
-        "AllwncExemptUs10": {
-          "SalaryExemptUs10": {
-            "ExemptSalaryUs10": {
-              "NatureOfAllowance": "HRA",
-              "ExemptAmount": 120000
-            }
-          }
-        }
-      }
-    }
-  }
-}`)
-
-  const [json2, setJson2] = useState(`{
-  "ITR": {
-    "ITR1": {
-      "CreationInfo": {
-        "Digest": "XYZ789",
-        "IntermediaryCity": "Delhi"
-      },
-      "ITR1_IncomeDeductions": {
-        "UsrDeductUndChapVIA": {
-          "Section80C": {
-            "Sec80CCDEmployeeOrSE": 100000,
-            "Sec80CCC": 25000,
-            "Sec80CCDEmployer": 50000
-          },
-          "Section80D": {
-            "Sec80DHealthInsPremium": {
-              "SeniorCitizenFlag": "Y",
-              "SelfAndFamily": 50000,
-              "ParentsU60": 25000,
-              "ParentsO60": 50000
-            }
-          }
-        },
-        "AllwncExemptUs10": {
-          "SalaryExemptUs10": {
-            "ExemptSalaryUs10": {
-              "NatureOfAllowance": "Transport",
-              "ExemptAmount": 19200
-            }
-          }
-        }
-      }
-    }
-  }
-}`)
+  const [json1, setJson1] = useState("") // Removed pre-loaded data
+  const [json2, setJson2] = useState("") // Removed pre-loaded data
   const [json1Name, setJson1Name] = useState("JSON_1.json")
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
@@ -240,15 +171,27 @@ export function JsonComparator() {
 
   // Event handlers
   const handleJson1Change = (value: string, fileName?: string) => {
-    setJson1(value)
+    try {
+      const formatted = prettifyJson(value, settings) // Auto-format on change
+      setJson1(formatted)
+      setJson1Error(undefined)
+    } catch (err) {
+      setJson1(value) // Keep original if invalid
+      setJson1Error("Invalid JSON: Cannot format")
+    }
     if (fileName) setJson1Name(fileName)
-    setJson1Error(undefined)
   }
 
   const handleJson2Change = (value: string, fileName?: string) => {
-    setJson2(value)
+    try {
+      const formatted = prettifyJson(value, settings) // Auto-format on change
+      setJson2(formatted)
+      setJson2Error(undefined)
+    } catch (err) {
+      setJson2(value) // Keep original if invalid
+      setJson2Error("Invalid JSON: Cannot format")
+    }
     if (fileName) setJson2Name(fileName)
-    setJson2Error(undefined)
   }
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, target: "json1" | "json2") => {
@@ -261,9 +204,9 @@ export function JsonComparator() {
     try {
       const content = await file.text()
       if (target === "json1") {
-        handleJson1Change(content, file.name)
+        handleJson1Change(content, file.name) // Will auto-format
       } else {
-        handleJson2Change(content, file.name)
+        handleJson2Change(content, file.name) // Will auto-format
       }
     } catch (err) {
       const setError = target === "json1" ? setJson1Error : setJson2Error
@@ -277,28 +220,13 @@ export function JsonComparator() {
   const handleClearAll = () => {
     setJson1("")
     setJson2("")
-    setJson1Name("")
-    setJson2Name("")
+    setJson1Name("JSON_1.json") // Reset to default name
+    setJson2Name("JSON_2.json") // Reset to default name
     setJson1Error(undefined)
     setJson2Error(undefined)
     setComparisonResult(null)
     setExpandedDiffs(new Set())
     setHighlightedPath(null)
-  }
-
-  const handleFormatJson = (target: "json1" | "json2") => {
-    try {
-      const jsonToFormat = target === "json1" ? json1 : json2
-      const formatted = prettifyJson(jsonToFormat, settings)
-      if (target === "json1") {
-        setJson1(formatted)
-      } else {
-        setJson2(formatted)
-      }
-    } catch (err) {
-      const setError = target === "json1" ? setJson1Error : setJson2Error
-      setError("Invalid JSON: Cannot format")
-    }
   }
 
   const handleDownload = (target: "json1" | "json2") => {
@@ -319,10 +247,8 @@ export function JsonComparator() {
 
   const loadPreset = (presetKey: keyof typeof PRESET_EXAMPLES) => {
     const preset = PRESET_EXAMPLES[presetKey]
-    setJson1(preset.json1)
-    setJson2(preset.json2)
-    setJson1Name(`${preset.name} - JSON 1`)
-    setJson2Name(`${preset.name} - JSON 2`)
+    handleJson1Change(preset.json1, `${preset.name} - JSON 1`) // Use handler for auto-format
+    handleJson2Change(preset.json2, `${preset.name} - JSON 2`) // Use handler for auto-format
     setJson1Error(undefined)
     setJson2Error(undefined)
   }
@@ -458,7 +384,7 @@ export function JsonComparator() {
       icon: <FileJson className="h-4 w-4" />,
       actions: (
         <JsonInputActions
-          onFormat={() => handleFormatJson("json1")}
+          // onFormat removed as auto-formatting is enabled
           onCopy={() => json1 && navigator.clipboard.writeText(json1)}
           onDownload={() => handleDownload("json1")}
           onUpload={() => document.getElementById("json1-upload")?.click()}
@@ -487,7 +413,7 @@ export function JsonComparator() {
       icon: <FileJson className="h-4 w-4" />,
       actions: (
         <JsonInputActions
-          onFormat={() => handleFormatJson("json2")}
+          // onFormat removed as auto-formatting is enabled
           onCopy={() => json2 && navigator.clipboard.writeText(json2)}
           onDownload={() => handleDownload("json2")}
           onUpload={() => document.getElementById("json2-upload")?.click()}
@@ -514,7 +440,6 @@ export function JsonComparator() {
       id: "results",
       title: "Comparison Results",
       icon: <Search className="h-4 w-4" />,
-      // Removed the actions prop here as export buttons are now in content
       content: (
         <div className="h-full w-full">
           {!comparisonResult && !isComparing && (

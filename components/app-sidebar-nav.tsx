@@ -12,20 +12,18 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarTrigger, // Import SidebarTrigger
 } from "@/components/ui/sidebar"
-import { Home, FileJson, GitCompare, FileText, Code } from "lucide-react"
+import { FileJson, GitCompare, FileText, Code } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navGroups = [
-  {
-    label: "Overview",
-    items: [{ href: "/", label: "Home", icon: Home }],
-  },
+  // Removed "Overview" group and "Home" item
   {
     label: "JSON Tools",
     items: [
-      { href: "/formatter", label: "JSON Formatter", icon: FileText },
-      { href: "/comparator", label: "JSON Comparator", icon: GitCompare },
+      { href: "/formatter", label: "Formatter", icon: FileText }, // Renamed
+      { href: "/comparator", label: "Comparator", icon: GitCompare }, // Renamed
       { href: "/validator", label: "Schema Validator", icon: FileJson },
       // Placeholder for "JSON to Schema" - assuming it's a new tool
       // { href: "/json-to-schema", label: "JSON to Schema", icon: Settings },
@@ -45,14 +43,19 @@ export function AppSidebarNav() {
   const pathname = usePathname()
 
   return (
-    <Sidebar className="border-r border-border">
-      <SidebarHeader className="p-4">
+    <Sidebar className="border-r border-border" collapsible="icon">
+      {" "}
+      {/* Made sidebar collapsible="icon" */}
+      <SidebarHeader className="p-4 flex items-center justify-between">
+        {" "}
+        {/* Added flex for trigger */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Code className="h-5 w-5" />
           </div>
           <span className="text-lg font-semibold text-foreground">Dev Tools</span>
         </Link>
+        <SidebarTrigger className="ml-auto" /> {/* Sidebar trigger for desktop */}
       </SidebarHeader>
       <SidebarContent className="p-4">
         {navGroups.map((group) => (
@@ -80,7 +83,7 @@ export function AppSidebarNav() {
                       >
                         <Link href={item.href}>
                           <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")} />
-                          {item.label}
+                          <span>{item.label}</span> {/* Wrap label in span for icon mode */}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

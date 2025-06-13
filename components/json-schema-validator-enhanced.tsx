@@ -29,6 +29,7 @@ import {
   type ValidatorOptions,
   type SchemaDraft,
 } from "@/lib/schema-validator-enhanced"
+import { prettifyJson } from "@/lib/json-utils" // Import prettifyJson
 
 export function JsonSchemaValidatorEnhanced() {
   const [jsonInput, setJsonInput] = useState("")
@@ -121,12 +122,13 @@ export function JsonSchemaValidatorEnhanced() {
 
     try {
       const content = await file.text()
+      const formattedContent = prettifyJson(content, { indentation: 2, sortKeys: false }) // Auto-format on upload
       if (type === "json") {
-        setJsonInput(content)
+        setJsonInput(formattedContent)
         setJsonFileName(file.name)
         setJsonError(undefined)
       } else {
-        setSchemaInput(content)
+        setSchemaInput(formattedContent)
         setSchemaFileName(file.name)
         setSchemaError(undefined)
       }
@@ -233,7 +235,7 @@ export function JsonSchemaValidatorEnhanced() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <Select
           value={validatorOptions.draft}
-          onValueChange={(value: SchemaDraft) => setValidatorOptions({ ...validatorOptions, draft: value })}
+          onValueChange={(value: SchemaDraft) => setValidatorOptions((o) => ({ ...o, draft: value }))}
         >
           <SelectTrigger className="w-full sm:w-36">
             <SelectValue placeholder="Schema draft" />
@@ -281,9 +283,15 @@ export function JsonSchemaValidatorEnhanced() {
         <SharedJsonInput
           value={jsonInput}
           onValueChange={(val, fName) => {
-            setJsonInput(val)
+            try {
+              const formatted = prettifyJson(val, { indentation: 2, sortKeys: false }) // Auto-format on change
+              setJsonInput(formatted)
+              setJsonError(undefined)
+            } catch (err) {
+              setJsonInput(val) // Keep original if invalid
+              setJsonError("Invalid JSON: Cannot format")
+            }
             if (fName) setJsonFileName(fName)
-            setJsonError(undefined)
           }}
           placeholder="Paste JSON data here..."
           error={jsonError}
@@ -320,9 +328,15 @@ export function JsonSchemaValidatorEnhanced() {
         <SharedJsonInput
           value={schemaInput}
           onValueChange={(val, fName) => {
-            setSchemaInput(val)
+            try {
+              const formatted = prettifyJson(val, { indentation: 2, sortKeys: false }) // Auto-format on change
+              setSchemaInput(formatted)
+              setSchemaError(undefined)
+            } catch (err) {
+              setSchemaInput(val) // Keep original if invalid
+              setSchemaError("Invalid JSON: Cannot format")
+            }
             if (fName) setSchemaFileName(fName)
-            setSchemaError(undefined)
           }}
           placeholder="Paste JSON Schema here..."
           error={schemaError}
@@ -450,8 +464,8 @@ export function JsonSchemaValidatorEnhanced() {
                         open={expandedErrors.has(index)}
                         onOpenChange={() => toggleErrorExpansion(index)}
                       >
-                        <CollapsibleTrigger className="w-full text-left p-2 rounded hover:bg-accent transition-colors border flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2 flex-grow min-w-0">
+                        <CollapsibleTrigger className="w-full text-left p-2 rounded hover:bg-accent transition-colors border flex items-start justify-between text-xs">
+                          <div className="flex items-start gap-2 flex-grow min-w-0">
                             {getSeverityIcon(error.severity)}
                             <div className="flex-1 truncate">
                               <span className="font-medium truncate" title={error.message}>

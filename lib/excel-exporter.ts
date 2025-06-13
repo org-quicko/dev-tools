@@ -58,10 +58,10 @@ export async function exportToExcelUniversal(result: JsonComparisonResult, confi
       // Continue without properties
     }
 
-    // Create sheets
+    // Create sheets - Summary first, then Comparison Report
     try {
-      await createComparisonSheet(workbook, result, config, ExcelJS)
-      await createSummarySheet(workbook, result, config, ExcelJS)
+      await createSummarySheet(workbook, result, config, ExcelJS) // Summary sheet first
+      await createComparisonSheet(workbook, result, config, ExcelJS) // Comparison Report second
     } catch (sheetError) {
       console.error("Sheet creation failed:", sheetError)
       throw new Error("Failed to create Excel sheets. Please try CSV format.")
@@ -168,19 +168,15 @@ async function createComparisonSheet(
     // Set up columns with auto width configuration
     try {
       const columnConfigs = headers.map((header, index) => {
-        let width = "auto"
+        let width = 15 // Default width
         if (header.includes("JSON Path")) width = 50 // Maximum width for JSON Path
         if (header.includes("Line")) width = 12
 
-        return { width, autoWidth: true } // Enable auto width for all columns
+        return { key: `col${index}`, width, autoWidth: true } // Enable auto width for all columns
       })
 
       if (worksheet.columns) {
-        worksheet.columns = columnConfigs.map((config, index) => ({
-          key: `col${index}`,
-          width: config.width,
-          autoWidth: config.autoWidth,
-        }))
+        worksheet.columns = columnConfigs
       }
     } catch (columnError) {
       console.warn("Column configuration failed, using default widths:", columnError)
@@ -465,7 +461,8 @@ function generateFileName(extension: string, config: ReportConfig, suffix?: stri
     if (config.json1Name && config.json2Name) {
       const name1 = config.json1Name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "-")
       const name2 = config.json2Name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "-")
-      return `${baseName}-${name1}-vs-${name2}${suffixPart}-${timestamp}.${extension}`
+      // Output file name should be JSON Name 1 vs JSON Name 2
+      return `${name1}-vs-${name2}${suffixPart}-${timestamp}.${extension}`
     }
 
     return `${baseName}${suffixPart}-${timestamp}.${extension}`

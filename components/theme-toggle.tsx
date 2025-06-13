@@ -10,10 +10,12 @@ export function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
+  // Ensure component is mounted before rendering UI that depends on theme
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Render a placeholder or null until mounted to prevent hydration mismatches
   if (!mounted) {
     return (
       <Button variant="outline" size="icon" disabled>

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, Copy, Upload, FileText, Settings, CheckCircle, AlertTriangle, Trash2, Sparkles } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Link from "next/link"
+import { prettifyJson } from "@/lib/json-utils" // Import prettifyJson
 
 interface FormatterSettings {
   indentation: number
@@ -37,12 +38,7 @@ export function JsonFormatter() {
         return
       }
       try {
-        const parsed = JSON.parse(input)
-        let processedData = parsed
-        if (settings.sortKeys) {
-          processedData = sortObjectKeys(parsed)
-        }
-        const formatted = JSON.stringify(processedData, null, settings.indentation)
+        const formatted = prettifyJson(input, settings) // Use prettifyJson
         setFormattedJson(formatted)
         setError(null)
         setIsValid(true)
@@ -54,21 +50,6 @@ export function JsonFormatter() {
     },
     [settings],
   )
-
-  const sortObjectKeys = (obj: any): any => {
-    if (Array.isArray(obj)) {
-      return obj.map(sortObjectKeys)
-    } else if (obj !== null && typeof obj === "object") {
-      const sorted: any = {}
-      Object.keys(obj)
-        .sort()
-        .forEach((key) => {
-          sorted[key] = sortObjectKeys(obj[key])
-        })
-      return sorted
-    }
-    return obj
-  }
 
   const handleInputChange = (value: string) => {
     setJsonInput(value)
@@ -268,7 +249,7 @@ export function JsonFormatter() {
                 </div>
               </CardHeader>
               <CardContent>
-                <pre className="zinc-scrollbar w-full h-96 p-3 font-mono text-sm border rounded-lg overflow-auto bg-muted/30">
+                <pre className="zinc-scrollbar w-full h-96 p-3 font-mono text-sm border rounded-lg overflow-auto bg-muted/30 text-foreground">
                   {formattedJson || "Formatted JSON will appear here..."}
                 </pre>
               </CardContent>
