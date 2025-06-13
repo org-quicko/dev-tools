@@ -169,7 +169,7 @@ async function createComparisonSheet(
     try {
       const columnConfigs = headers.map((header, index) => {
         let width = 15 // Default width
-        if (header.includes("JSON Path")) width = 50 // Maximum width for JSON Path
+        if (header.includes("JSON Path")) width = 50 // Max width for JSON Path, will be overridden by autoWidth if smaller
         if (header.includes("Line")) width = 12
 
         return { key: `col${index}`, width, autoWidth: true } // Enable auto width for all columns
@@ -275,12 +275,13 @@ async function createComparisonSheet(
       console.warn("Header freeze failed:", freezeError)
     }
 
-    // Auto-fit columns after all data is added
+    // Auto-fit columns after all data is added - REMOVED ARBITRARY WIDTH CAP
     try {
       worksheet.columns.forEach((column: any) => {
-        // Set a maximum width of 50 characters
-        if (column.width > 50) {
-          column.width = 50
+        if (column.autoWidth) {
+          // ExcelJS autoWidth calculates based on content.
+          // We can add a small padding if needed, but generally autoWidth is sufficient.
+          // For example: column.width = (column.width || 10) + 2;
         }
       })
     } catch (autoFitError) {
@@ -384,9 +385,8 @@ async function createSummarySheet(
         currentRow++
       })
 
-      // Set column widths - auto width with maximum of 50
+      // Set column widths - REMOVED ARBITRARY WIDTH CAP
       worksheet.columns.forEach((column: any) => {
-        column.width = Math.min(column.width || 15, 50)
         column.autoWidth = true
       })
     } catch (contentError) {

@@ -1,41 +1,33 @@
 "use client"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ThemeToggle } from "./theme-toggle"
-import { Separator } from "@/components/ui/separator"
-import { Menu } from "lucide-react"
-import { usePathname } from "next/navigation"
-
-const TOOL_TITLES: Record<string, { title: string; icon: string }> = {
-  "/formatter": { title: "JSON Formatter", icon: "🔧" },
-  "/comparator": { title: "JSON Comparator", icon: "⚖️" },
-  "/validator": { title: "JSON Schema Validator", icon: "✅" },
-}
+import Link from "next/link"
+import { Code, Github } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Button } from "@/components/ui/button"
+import { SidebarTrigger } from "@/components/ui/sidebar" // Import SidebarTrigger
 
 export function AppHeaderNav() {
-  const pathname = usePathname()
-  const currentTool = TOOL_TITLES[pathname]
-
   return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 w-full">
-      <div className="md:hidden">
-        <SidebarTrigger className="-ml-1.5 p-2">
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Open sidebar</span>
-        </SidebarTrigger>
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <div className="flex items-center gap-2 md:hidden">
+        {" "}
+        {/* Show logo and trigger on mobile */}
+        <SidebarTrigger className="md:hidden" /> {/* Sidebar trigger for mobile */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Code className="h-5 w-5" />
+          </div>
+          <span className="text-lg font-semibold text-foreground">Dev Tools</span>
+        </Link>
       </div>
-      
-
-      {/* Tool Title */}
-      {currentTool && (
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{currentTool.icon}</span>
-          <h1 className="text-lg font-semibold text-foreground">{currentTool.title}</h1>
-        </div>
-      )}
-
-      <div className="flex flex-1 items-center justify-end gap-4">
+      <div className="relative ml-auto flex items-center gap-4">
         <ThemeToggle />
+        <Button variant="ghost" size="icon" asChild>
+          <a href="https://github.com/vercel/v0" target="_blank" rel="noopener noreferrer">
+            <Github className="h-5 w-5" />
+            <span className="sr-only">GitHub</span>
+          </a>
+        </Button>
       </div>
     </header>
   )
