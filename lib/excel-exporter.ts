@@ -46,6 +46,13 @@ export async function exportToExcelUniversal(result: JsonComparisonResult, confi
       workbook.creator = "JSON Compare Tool"
       workbook.created = new Date()
       workbook.modified = new Date()
+      workbook.lastPrinted = new Date()
+
+      // Add custom properties
+      workbook.properties.company = "Dev Tools"
+      workbook.properties.title = "JSON Comparison Report"
+      workbook.properties.subject = "Comparison of JSON files"
+      workbook.properties.keywords = "json, comparison, report"
     } catch (propsError) {
       console.warn("Could not set workbook properties:", propsError)
       // Continue without properties
@@ -136,7 +143,7 @@ async function createComparisonSheet(
           cell.fill = {
             type: "pattern",
             pattern: "solid",
-            fgColor: { argb: "366092" },
+            fgColor: { argb: "2C3E50" }, // Darker blue-gray color for a more professional look
           }
           cell.alignment = {
             vertical: "middle",
@@ -158,21 +165,21 @@ async function createComparisonSheet(
       console.warn("Header styling failed, continuing with basic formatting:", styleError)
     }
 
-    // Set up columns with basic configuration
+    // Set up columns with auto width configuration
     try {
       const columnConfigs = headers.map((header, index) => {
-        let width = 20
-        if (header.includes("JSON Path")) width = 50
+        let width = "auto"
+        if (header.includes("JSON Path")) width = 50 // Maximum width for JSON Path
         if (header.includes("Line")) width = 12
-        if (header.includes("Value") || header.includes("JSON 1") || header.includes("JSON 2")) width = 35
 
-        return { width }
+        return { width, autoWidth: true } // Enable auto width for all columns
       })
 
       if (worksheet.columns) {
         worksheet.columns = columnConfigs.map((config, index) => ({
           key: `col${index}`,
           width: config.width,
+          autoWidth: config.autoWidth,
         }))
       }
     } catch (columnError) {
@@ -198,26 +205,29 @@ async function createComparisonSheet(
 
         const excelRow = worksheet.addRow(dataRow)
 
-        // Apply basic styling with error handling
+        // Apply minimal styling with error handling
         try {
           if (excelRow && typeof excelRow === "object") {
+            // Use very subtle background colors based on change type
             const changeType = row.changeType.toLowerCase()
-            let fillColor = "FFFFFF"
+            let fillColor = "FFFFFF" // Default white
 
+            // Apply very subtle background colors
             switch (changeType) {
               case "addition":
-                fillColor = "E8F5E8"
+                fillColor = "F9FCFA" // Very light green
                 break
               case "deletion":
-                fillColor = "FFF2F2"
+                fillColor = "FCFAFA" // Very light red
                 break
               case "modification":
-                fillColor = "FFF8E1"
+                fillColor = "FAFCFE" // Very light blue
                 break
             }
 
             excelRow.eachCell((cell: any) => {
               if (cell && typeof cell === "object") {
+                // Apply minimal styling
                 cell.fill = {
                   type: "pattern",
                   pattern: "solid",
@@ -228,16 +238,17 @@ async function createComparisonSheet(
                   wrapText: true,
                 }
                 cell.border = {
-                  top: { style: "thin", color: { argb: "E0E0E0" } },
-                  left: { style: "thin", color: { argb: "E0E0E0" } },
-                  bottom: { style: "thin", color: { argb: "E0E0E0" } },
-                  right: { style: "thin", color: { argb: "E0E0E0" } },
+                  top: { style: "thin", color: { argb: "F0F0F0" } },
+                  left: { style: "thin", color: { argb: "F0F0F0" } },
+                  bottom: { style: "thin", color: { argb: "F0F0F0" } },
+                  right: { style: "thin", color: { argb: "F0F0F0" } },
                 }
                 cell.font = { size: 10, name: "Calibri" }
               }
             })
 
-            excelRow.height = 25
+            // Auto-height for rows
+            excelRow.height = -1 // Auto height
           }
         } catch (rowStyleError) {
           console.warn(`Row ${index} styling failed, continuing:`, rowStyleError)
@@ -267,6 +278,18 @@ async function createComparisonSheet(
     } catch (freezeError) {
       console.warn("Header freeze failed:", freezeError)
     }
+
+    // Auto-fit columns after all data is added
+    try {
+      worksheet.columns.forEach((column: any) => {
+        // Set a maximum width of 50 characters
+        if (column.width > 50) {
+          column.width = 50
+        }
+      })
+    } catch (autoFitError) {
+      console.warn("Column auto-fit failed:", autoFitError)
+    }
   } catch (error) {
     console.error("Comparison sheet creation failed:", error)
     throw new Error("Failed to create comparison sheet")
@@ -290,7 +313,7 @@ async function createSummarySheet(
       // Title
       const titleCell = worksheet.getCell(currentRow, 1)
       titleCell.value = "JSON Comparison Report Summary"
-      titleCell.font = { bold: true, size: 16, color: { argb: "366092" } }
+      titleCell.font = { bold: true, size: 16, color: { argb: "2C3E50" } }
       currentRow += 2
 
       // Metadata
@@ -365,8 +388,11 @@ async function createSummarySheet(
         currentRow++
       })
 
-      // Set column widths
-      worksheet.columns = [{ width: 25 }, { width: 15 }, { width: 15 }, { width: 15 }, { width: 15 }]
+      // Set column widths - auto width with maximum of 50
+      worksheet.columns.forEach((column: any) => {
+        column.width = Math.min(column.width || 15, 50)
+        column.autoWidth = true
+      })
     } catch (contentError) {
       console.warn("Summary content creation failed:", contentError)
       // Add basic content as fallback

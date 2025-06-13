@@ -20,6 +20,8 @@ import {
   Download,
   Trash2,
   Search,
+  FileSpreadsheet,
+  Table,
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
@@ -28,6 +30,9 @@ import { compareJsons, type ComparisonSettings } from "@/lib/json-compare"
 import { prettifyJson } from "@/lib/json-utils"
 import { useDebounce } from "@/hooks/use-debounce"
 import { cn } from "@/lib/utils"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { exportToCsvUniversal } from "@/lib/csv-exporter"
+import { exportToExcelUniversal } from "@/lib/excel-exporter"
 
 // Types
 interface JsonDifference {
@@ -161,17 +166,19 @@ export function JsonComparator() {
     }
   }
 }`)
-  const [json1Name, setJson1Name] = useState("")
+  const [json1Name, setJson1Name] = useState("JSON_1.json")
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
 
-  const [json2Name, setJson2Name] = useState("")
+  const [json2Name, setJson2Name] = useState("JSON_2.json")
   const [json2Error, setJson2Error] = useState<string | undefined>(undefined)
   const [json2Loading, setJson2Loading] = useState(false)
 
   const [comparisonResult, setComparisonResult] = useState<JsonComparisonResult | null>(null)
   const [isComparing, setIsComparing] = useState(false)
   const [realTimeCompare, setRealTimeCompare] = useState(true)
+  const [isExporting, setIsExporting] = useState<boolean>(false)
+  const [exportFormat, setExportFormat] = useState<"csv" | "excel" | null>(null)
 
   const [settings, setSettings] = useState<ComparisonSettings>({
     indentation: 2,
@@ -332,6 +339,33 @@ export function JsonComparator() {
     setHighlightedPath(path)
   }
 
+  // Export handlers
+  const handleExport = async (format: "csv" | "excel") => {
+    if (!comparisonResult) return
+
+    setIsExporting(true)
+    setExportFormat(format)
+
+    try {
+      const config = {
+        json1Name,
+        json2Name,
+        includeLineNumbers: true,
+      }
+
+      if (format === "csv") {
+        exportToCsvUniversal(comparisonResult, config)
+      } else if (format === "excel") {
+        await exportToExcelUniversal(comparisonResult, config)
+      }
+    } catch (error) {
+      console.error(`${format.toUpperCase()} export error:`, error)
+    } finally {
+      setIsExporting(false)
+      setExportFormat(null)
+    }
+  }
+
   // Computed values
   const summary = useMemo(() => {
     if (!comparisonResult?.summary) return { additions: 0, deletions: 0, modifications: 0, total: 0, unchanged: 0 }
@@ -453,23 +487,31 @@ export function JsonComparator() {
       title: "Comparison Results",
       icon: <Search className="h-4 w-4" />,
       actions: comparisonResult && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            const report = JSON.stringify(comparisonResult, null, 2)
-            const blob = new Blob([report], { type: "application/json" })
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement("a")
-            a.href = url
-            a.download = "comparison-report.json"
-            a.click()
-            URL.revokeObjectURL(url)
-          }}
-          className="h-7 w-7"
-        >
-          <Download className="h-3.5 w-3.5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7" disabled={isExporting}>
+              {isExporting ? (
+                exportFormat === "csv" ? (
+                  <Table className="h-3.5 w-3.5 animate-pulse" />
+                ) : (
+                  <FileSpreadsheet className="h-3.5 w-3.5 animate-pulse" />
+                )
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleExport("csv")}>
+              <Table className="h-4 w-4 mr-2" />
+              Export as CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport("excel")}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Export as Excel
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
       content: (
         <div className="h-full w-full">

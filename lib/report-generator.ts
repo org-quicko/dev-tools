@@ -1,99 +1,96 @@
 import type { JsonComparisonResult } from "@/types/comparison"
 
-export interface ReportRow {
-  changeType: string
-  jsonPath: string
-  key: string
-  json1Line?: number
-  json1Value: string
-  json2Line?: number
-  json2Value: string
-}
-
 export interface ReportConfig {
   json1Name?: string
   json2Name?: string
   includeLineNumbers?: boolean
 }
 
-export function generateReportData(result: JsonComparisonResult, config: ReportConfig = {}): ReportRow[] {
-  const { json1Name = "JSON 1", json2Name = "JSON 2", includeLineNumbers = true } = config
-
-  const reportRows: ReportRow[] = []
-
-  for (const diff of result.differences) {
-    const row: ReportRow = {
-      changeType: capitalizeChangeType(diff.type),
-      jsonPath: diff.path,
-      key: extractKeyFromPath(diff.path),
-      json1Value: formatValue(diff.oldValue),
-      json2Value: formatValue(diff.newValue),
-    }
-
-    // Add line numbers if available and requested
-    if (includeLineNumbers) {
-      if (diff.leftLine) row.json1Line = diff.leftLine
-      if (diff.rightLine) row.json2Line = diff.rightLine
-    }
-
-    reportRows.push(row)
-  }
-
-  return reportRows
+export interface ReportRow {
+  changeType: string
+  jsonPath: string
+  key: string
+  json1Line?: number | string
+  json1Value: string
+  json2Line?: number | string
+  json2Value: string
 }
 
-export function generateReportHeaders(config: ReportConfig = {}): string[] {
-  const { json1Name = "JSON 1", json2Name = "JSON 2", includeLineNumbers = true } = config
+export function generateReportHeaders(config: ReportConfig): string[] {
+  const json1Label = config.json1Name || "JSON 1"
+  const json2Label = config.json2Name || "JSON 2"
 
   const headers = ["Change Type", "JSON Path", "Key"]
 
-  if (includeLineNumbers) {
-    headers.push("JSON 1 Line")
+  if (config.includeLineNumbers !== false) {
+    headers.push(`${json1Label} Line`)
   }
 
-  headers.push(`JSON 1 (${getDisplayName(json1Name)})`)
+  headers.push(`${json1Label} Value`)
 
-  if (includeLineNumbers) {
-    headers.push("JSON 2 Line")
+  if (config.includeLineNumbers !== false) {
+    headers.push(`${json2Label} Line`)
   }
 
-  headers.push(`JSON 2 (${getDisplayName(json2Name)})`)
+  headers.push(`${json2Label} Value`)
 
   return headers
 }
 
-export function generateSummaryData(result: JsonComparisonResult): {
-  totalDifferences: number
-  additions: number
-  deletions: number
-  modifications: number
-  topLevelBreakdown: Record<string, { additions: number; deletions: number; modifications: number }>
-} {
-  const { additions, deletions, modifications } = result.summary
-  const totalDifferences = result.differences.length
+export function generateReportData(result: JsonComparisonResult, config: ReportConfig): ReportRow[] {
+  const reportData: ReportRow[] = []
 
-  // Group by top-level path
+  result.differences.forEach((diff) => {
+    const pathSegments = diff.path.split(".")
+    const key = pathSegments[pathSegments.length - 1] || "root"
+
+    // Create a separate row for each difference, even if they share the same path/key
+    const row: ReportRow = {
+      changeType: diff.type.charAt(0).toUpperCase() + diff.type.slice(1),
+      jsonPath: diff.path,
+      key,
+      json1Line: diff.leftLine || "",
+      json1Value: diff.type === "addition" ? "" : JSON.stringify(diff.oldValue),
+      json2Line: diff.rightLine || "",
+      json2Value: diff.type === "deletion" ? "" : JSON.stringify(diff.newValue),
+    }
+
+    reportData.push(row)
+  })
+
+  return reportData
+}
+
+export function generateSummaryData(result: JsonComparisonResult) {
+  const { additions, deletions, modifications } = result.summary
+  const totalDifferences = additions + deletions + modifications
+
+  // Generate breakdown by top-level section
   const topLevelBreakdown: Record<string, { additions: number; deletions: number; modifications: number }> = {}
 
-  for (const diff of result.differences) {
-    const topLevel = getTopLevelPath(diff.path)
+  result.differences.forEach((diff) => {
+    const topLevelKey = diff.path.split(".")[0] || "root"
 
-    if (!topLevelBreakdown[topLevel]) {
-      topLevelBreakdown[topLevel] = { additions: 0, deletions: 0, modifications: 0 }
+    if (!topLevelBreakdown[topLevelKey]) {
+      topLevelBreakdown[topLevelKey] = {
+        additions: 0,
+        deletions: 0,
+        modifications: 0,
+      }
     }
 
     switch (diff.type) {
       case "addition":
-        topLevelBreakdown[topLevel].additions++
+        topLevelBreakdown[topLevelKey].additions++
         break
       case "deletion":
-        topLevelBreakdown[topLevel].deletions++
+        topLevelBreakdown[topLevelKey].deletions++
         break
       case "modification":
-        topLevelBreakdown[topLevel].modifications++
+        topLevelBreakdown[topLevelKey].modifications++
         break
     }
-  }
+  })
 
   return {
     totalDifferences,
@@ -102,76 +99,4 @@ export function generateSummaryData(result: JsonComparisonResult): {
     modifications,
     topLevelBreakdown,
   }
-}
-
-// Helper functions
-function capitalizeChangeType(type: string): string {
-  switch (type) {
-    case "addition":
-      return "Addition"
-    case "deletion":
-      return "Deletion"
-    case "modification":
-      return "Modification"
-    default:
-      return type.charAt(0).toUpperCase() + type.slice(1)
-  }
-}
-
-function extractKeyFromPath(path: string): string {
-  // Handle array indices: items[2].name -> name
-  // Handle object properties: user.address.street -> street
-  const segments = path.split(".")
-  const lastSegment = segments[segments.length - 1]
-
-  // Remove array brackets if present
-  return lastSegment.replace(/\[\d+\]$/, "")
-}
-
-function formatValue(value: any): string {
-  if (value === null) return "null"
-  if (value === undefined) return ""
-  if (typeof value === "string") return value
-  if (typeof value === "object") {
-    try {
-      return JSON.stringify(value)
-    } catch {
-      return String(value)
-    }
-  }
-  return String(value)
-}
-
-function getDisplayName(fileName: string): string {
-  if (!fileName) return "Unknown"
-
-  // Remove file extension
-  const nameWithoutExt = fileName.replace(/\.[^/.]+$/, "")
-
-  // If it's still a generic name, return as is
-  if (nameWithoutExt === "JSON 1" || nameWithoutExt === "JSON 2") {
-    return nameWithoutExt
-  }
-
-  // Return the clean filename
-  return nameWithoutExt
-}
-
-function getTopLevelPath(path: string): string {
-  const firstDot = path.indexOf(".")
-  const firstBracket = path.indexOf("[")
-
-  if (firstDot === -1 && firstBracket === -1) {
-    return path
-  }
-
-  if (firstDot === -1) {
-    return path.substring(0, firstBracket)
-  }
-
-  if (firstBracket === -1) {
-    return path.substring(0, firstDot)
-  }
-
-  return path.substring(0, Math.min(firstDot, firstBracket))
 }
