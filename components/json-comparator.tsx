@@ -487,31 +487,33 @@ export function JsonComparator() {
       title: "Comparison Results",
       icon: <Search className="h-4 w-4" />,
       actions: comparisonResult && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" disabled={isExporting}>
-              {isExporting ? (
-                exportFormat === "csv" ? (
-                  <Table className="h-3.5 w-3.5 animate-pulse" />
+        <div className="relative z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={isExporting}>
+                {isExporting ? (
+                  exportFormat === "csv" ? (
+                    <Table className="h-3.5 w-3.5 animate-pulse" />
+                  ) : (
+                    <FileSpreadsheet className="h-3.5 w-3.5 animate-pulse" />
+                  )
                 ) : (
-                  <FileSpreadsheet className="h-3.5 w-3.5 animate-pulse" />
-                )
-              ) : (
-                <Download className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleExport("csv")}>
-              <Table className="h-4 w-4 mr-2" />
-              Export as CSV
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport("excel")}>
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Export as Excel
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+                  <Download className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <Table className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as Excel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
       content: (
         <div className="h-full w-full">
