@@ -17,7 +17,6 @@ import {
   FileJson,
   Info,
   Sparkles,
-  Download,
   Trash2,
   Search,
   FileSpreadsheet,
@@ -30,7 +29,6 @@ import { compareJsons, type ComparisonSettings } from "@/lib/json-compare"
 import { prettifyJson } from "@/lib/json-utils"
 import { useDebounce } from "@/hooks/use-debounce"
 import { cn } from "@/lib/utils"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { exportToCsvUniversal } from "@/lib/csv-exporter"
 import { exportToExcelUniversal } from "@/lib/excel-exporter"
 
@@ -381,6 +379,36 @@ export function JsonComparator() {
     }
   }, [comparisonResult])
 
+  // Export buttons component
+  const ExportButtons = () => {
+    if (!comparisonResult) return null
+
+    return (
+      <div className="flex items-center gap-2 mt-4 mb-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => handleExport("csv")}
+          disabled={isExporting}
+        >
+          <Table className="h-4 w-4" />
+          {isExporting && exportFormat === "csv" ? "Exporting CSV..." : "Export as CSV"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="flex items-center gap-2"
+          onClick={() => handleExport("excel")}
+          disabled={isExporting}
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          {isExporting && exportFormat === "excel" ? "Exporting Excel..." : "Export as Excel"}
+        </Button>
+      </div>
+    )
+  }
+
   // Top controls
   const topControls = (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
@@ -486,35 +514,6 @@ export function JsonComparator() {
       id: "results",
       title: "Comparison Results",
       icon: <Search className="h-4 w-4" />,
-      actions: comparisonResult && (
-        <div className="relative z-20">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={isExporting}>
-                {isExporting ? (
-                  exportFormat === "csv" ? (
-                    <Table className="h-3.5 w-3.5 animate-pulse" />
-                  ) : (
-                    <FileSpreadsheet className="h-3.5 w-3.5 animate-pulse" />
-                  )
-                ) : (
-                  <Download className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("csv")}>
-                <Table className="h-4 w-4 mr-2" />
-                Export as CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("excel")}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Export as Excel
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
       content: (
         <div className="h-full w-full">
           {!comparisonResult && !isComparing && (
@@ -573,6 +572,9 @@ export function JsonComparator() {
                   </div>
                 </div>
               </div>
+
+              {/* Export Buttons */}
+              <ExportButtons />
 
               {/* Settings */}
               <div className="space-y-3">

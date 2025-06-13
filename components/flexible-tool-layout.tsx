@@ -1,68 +1,96 @@
 "use client"
 
 import type React from "react"
+
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface ColumnConfig {
+interface ColumnProps {
   id: string
   title: string
-  icon: React.ReactNode
-  content: React.ReactNode
+  icon?: React.ReactNode
   actions?: React.ReactNode
-  className?: string
+  content: React.ReactNode
 }
 
 interface FlexibleToolLayoutProps {
-  columns: ColumnConfig[]
+  columns: ColumnProps[]
   topControls?: React.ReactNode
   className?: string
 }
 
 export function FlexibleToolLayout({ columns, topControls, className }: FlexibleToolLayoutProps) {
-  const columnCount = columns.length
-  const gridCols = columnCount === 2 ? "grid-cols-2" : columnCount === 3 ? "grid-cols-3" : "grid-cols-1"
+  const [activeTab, setActiveTab] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
+
+  useEffect(() => {
+    if (isMobile && !activeTab && columns.length > 0) {
+      setActiveTab(columns[0].id)
+    }
+  }, [isMobile, activeTab, columns])
 
   return (
-    <div className={cn("flex flex-col h-screen w-full bg-background", className)}>
-      {/* Top Controls */}
-      {topControls && (
-        <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="w-full px-4 sm:px-6 py-3">{topControls}</div>
-        </div>
-      )}
+    <div className={cn("flex flex-col w-full h-full", className)}>
+      {topControls && <div className="mb-4">{topControls}</div>}
 
-      {/* Dynamic Column Layout */}
-      <div className={cn("flex-1 min-h-0 w-full grid divide-x divide-border", gridCols)}>
-        {columns.map((column, index) => (
-          <div key={column.id} className="flex flex-col h-full min-h-0 w-full">
-            {/* Column Header */}
-            <div className="shrink-0 border-b bg-muted/30">
-              <div className="px-3 sm:px-4 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 min-w-0">
-                    {column.icon}
-                    <h3 className="font-medium text-sm truncate">{column.title}</h3>
-                  </div>
-                  {column.actions && <div className="flex items-center gap-1 shrink-0">{column.actions}</div>}
-                </div>
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
+        {columns.map((column) => (
+          <Card
+            key={column.id}
+            className={cn(
+              "flex-1 flex flex-col min-h-0 overflow-hidden",
+              isMobile && activeTab !== column.id && "hidden",
+            )}
+          >
+            <CardHeader className="p-3 sm:p-4 flex flex-row items-center space-y-0 gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {column.icon && <span className="text-muted-foreground">{column.icon}</span>}
+                <CardTitle className="text-base truncate">{column.title}</CardTitle>
               </div>
-            </div>
-
-            {/* Column Content */}
-            <div className={cn("flex-1 min-h-0 w-full", column.className)}>
-              <ScrollArea className="h-full w-full zinc-scrollbar">
-                <div className="p-3 sm:p-4 w-full">{column.content}</div>
-              </ScrollArea>
-            </div>
-          </div>
+              {column.actions && (
+                <div className="flex items-center space-x-1 z-10 pointer-events-auto">{column.actions}</div>
+              )}
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-hidden">
+              <ScrollArea className="h-full w-full p-3 sm:p-4">{column.content}</ScrollArea>
+            </CardContent>
+          </Card>
         ))}
       </div>
+
+      {isMobile && (
+        <div className="flex items-center justify-center gap-2 mt-4">
+          {columns.map((column) => (
+            <button
+              key={column.id}
+              onClick={() => setActiveTab(column.id)}
+              className={cn(
+                "p-2 rounded-md flex items-center gap-2",
+                activeTab === column.id ? "bg-primary text-primary-foreground" : "bg-muted",
+              )}
+            >
+              {column.icon}
+              <span className="text-xs font-medium">{column.title}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
-// Shared components for consistent styling
 export function ColumnEmptyState({
   icon,
   title,
@@ -71,23 +99,25 @@ export function ColumnEmptyState({
 }: {
   icon: React.ReactNode
   title: string
-  description?: string
+  description: string
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-8 w-full">
-      <div className="mb-4 text-muted-foreground">{icon}</div>
-      <h3 className="text-base sm:text-lg font-medium mb-2">{title}</h3>
-      {description && <p className="text-sm text-muted-foreground mb-4 max-w-sm">{description}</p>}
-      {action}
+    <div className="h-full w-full flex flex-col items-center justify-center text-center p-4 space-y-4">
+      <div className="text-muted-foreground">{icon}</div>
+      <div>
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+      {action && <div>{action}</div>}
     </div>
   )
 }
 
 export function ColumnLoadingState({ message = "Loading..." }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-4 sm:p-8 w-full">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+    <div className="h-full w-full flex flex-col items-center justify-center text-center p-4 space-y-4">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   )
