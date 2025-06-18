@@ -47,12 +47,12 @@ export function SidebarProvider({ children, defaultOpen = true, collapsible = "d
 
 // 2. Sidebar Component
 const sidebarVariants = cva(
-  "fixed md:relative z-30 flex flex-col h-screen bg-background text-foreground transition-all duration-300 ease-in-out",
+  "flex flex-col h-screen bg-background text-foreground transition-all duration-300 ease-in-out",
   {
     variants: {
       isOpen: {
-        true: "w-64 translate-x-0",
-        false: "w-16 translate-x-0",
+        true: "w-64",
+        false: "w-16",
       },
       collapsible: {
         default: "w-64", // Fixed width if not collapsible
@@ -90,6 +90,8 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
       <aside
         ref={ref}
         className={cn(
+          "fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0", // Fixed on mobile, relative on desktop
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0", // Slide for mobile, always visible on desktop
           sidebarVariants({
             isOpen: isCollapsible ? isOpen : true, // Only apply isOpen variant if collapsible
             collapsible: variant,
@@ -215,7 +217,6 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttribute
           isCollapsible && !isOpen && "md:ml-16", // Adjust margin for collapsed state
           className,
         )}
-        style={{ width: "100%" }}
         {...props}
       />
     )
@@ -231,7 +232,7 @@ export const SidebarOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttribu
       <div
         ref={ref}
         className={cn(
-          "fixed inset-0 z-20 bg-background/80 backdrop-blur-sm transition-all duration-300",
+          "fixed inset-0 z-20 bg-background/80 backdrop-blur-sm transition-opacity duration-300 md:hidden", // Only visible on mobile
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
           className,
         )}

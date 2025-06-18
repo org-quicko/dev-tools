@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SidebarProvider defaultOpen={defaultOpen} collapsible="icon">
             <div className="flex h-screen overflow-hidden">
-              <SidebarOverlay className="md:hidden" /> {/* Mobile overlay */}
+              <SidebarOverlay /> {/* Render overlay */}
               <AppSidebarNav />
               <SidebarInset className="flex flex-col w-full">
                 <AppHeaderNav />
