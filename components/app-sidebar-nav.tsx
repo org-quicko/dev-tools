@@ -32,7 +32,9 @@ export function AppSidebarNav() {
 
   return (
     <Sidebar className="border-r border-border">
-      <SidebarHeader className="p-4">
+      {" "}
+      {/* Removed collapsible prop */}
+      <SidebarHeader className="p-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Code className="h-5 w-5" />

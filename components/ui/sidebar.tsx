@@ -1,17 +1,15 @@
 "use client"
 
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+// Removed ChevronLeft, ChevronRight as SidebarTrigger is removed
 
-// 1. Sidebar Context
+// 1. Sidebar Context (Simplified - no longer needs isCollapsible or variant)
 interface SidebarContextType {
-  isOpen: boolean
+  isOpen: boolean // Still useful for internal state, though not for external collapse
   setIsOpen: (isOpen: boolean) => void
-  isCollapsible: boolean
-  variant: "default" | "icon"
 }
 
 const SidebarContext = React.createContext<SidebarContextType | undefined>(undefined)
@@ -27,82 +25,46 @@ export function useSidebar() {
 interface SidebarProviderProps {
   children: React.ReactNode
   defaultOpen?: boolean
-  collapsible?: "default" | "icon"
 }
 
-export function SidebarProvider({ children, defaultOpen = true, collapsible = "default" }: SidebarProviderProps) {
+export function SidebarProvider({ children, defaultOpen = true }: SidebarProviderProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen)
-  const isCollapsible = collapsible !== "default"
-  const variant = collapsible
 
-  // Persist sidebar state in a cookie
+  // Persist sidebar state in a cookie (still useful if we want to remember open/closed state for other reasons, but not for collapse)
   React.useEffect(() => {
     document.cookie = `sidebar:state=${isOpen}; path=/; max-age=${60 * 60 * 24 * 365}`
   }, [isOpen])
 
-  return (
-    <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsible, variant }}>{children}</SidebarContext.Provider>
-  )
+  return <SidebarContext.Provider value={{ isOpen, setIsOpen }}>{children}</SidebarContext.Provider>
 }
 
-// 2. Sidebar Component
+// 2. Sidebar Component (Fixed width, no collapsible variants)
 const sidebarVariants = cva(
   "flex flex-col h-screen bg-background text-foreground transition-all duration-300 ease-in-out",
   {
     variants: {
-      isOpen: {
-        true: "w-64",
-        false: "w-16",
-      },
-      collapsible: {
-        default: "w-64", // Fixed width if not collapsible
-        icon: "", // Width controlled by isOpen
-      },
+      // No isOpen or collapsible variants needed for fixed sidebar
     },
-    compoundVariants: [
-      {
-        isOpen: false,
-        collapsible: "icon",
-        className: "w-16",
-      },
-      {
-        isOpen: true,
-        collapsible: "icon",
-        className: "w-64",
-      },
-    ],
     defaultVariants: {
-      isOpen: true,
-      collapsible: "default",
+      // No default variants needed
     },
   },
 )
 
-interface SidebarProps extends React.HTMLAttributes<HTMLElement>, VariantProps<typeof sidebarVariants> {
-  collapsible?: "default" | "icon" // Re-declare to ensure it's passed to variants
-}
+interface SidebarProps extends React.HTMLAttributes<HTMLElement> {}
 
-export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
-  ({ className, collapsible = "default", ...props }, ref) => {
-    const { isOpen, isCollapsible, variant } = useSidebar()
-
-    return (
-      <aside
-        ref={ref}
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0", // Fixed on mobile, relative on desktop
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0", // Slide for mobile, always visible on desktop
-          sidebarVariants({
-            isOpen: isCollapsible ? isOpen : true, // Only apply isOpen variant if collapsible
-            collapsible: variant,
-          }),
-          className,
-        )}
-        {...props}
-      />
-    )
-  },
-)
+export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(({ className, ...props }, ref) => {
+  return (
+    <aside
+      ref={ref}
+      className={cn(
+        "fixed inset-y-0 left-0 z-30 w-64 md:relative md:translate-x-0", // Fixed width, always visible on desktop
+        className,
+      )}
+      {...props}
+    />
+  )
+})
 Sidebar.displayName = "Sidebar"
 
 // 3. Sidebar Header
@@ -133,7 +95,7 @@ export const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.HTMLAttribu
 )
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
-// 7. Sidebar Menu Button (for navigation links)
+// 7. Sidebar Menu Button (for navigation links - simplified)
 interface SidebarMenuButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
   isActive?: boolean
   asChild?: boolean
@@ -141,18 +103,12 @@ interface SidebarMenuButtonProps extends React.ComponentPropsWithoutRef<typeof B
 
 export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenuButtonProps>(
   ({ className, isActive, asChild, ...props }, ref) => {
-    const { isOpen, isCollapsible } = useSidebar()
     return (
       <Button
         ref={ref}
         variant="ghost"
-        size={isCollapsible && !isOpen ? "icon" : "default"}
-        className={cn(
-          "w-full justify-start",
-          isCollapsible && !isOpen && "w-10 h-10 p-0", // Ensure icon-only button is square
-          isActive && "bg-accent text-accent-foreground",
-          className,
-        )}
+        size="default" // Always default size
+        className={cn("w-full justify-start", isActive && "bg-accent text-accent-foreground", className)}
         asChild={asChild}
         {...props}
       />
@@ -167,11 +123,9 @@ export const SidebarGroup = React.forwardRef<HTMLDivElement, React.HTMLAttribute
 )
 SidebarGroup.displayName = "SidebarGroup"
 
-// 9. Sidebar Group Label
+// 9. Sidebar Group Label (always visible)
 export const SidebarGroupLabel = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => {
-    const { isOpen, isCollapsible } = useSidebar()
-    if (isCollapsible && !isOpen) return null // Hide label when collapsed
     return <p ref={ref} className={cn("px-2 py-1 text-xs font-medium text-muted-foreground", className)} {...props} />
   },
 )
@@ -183,38 +137,17 @@ export const SidebarGroupContent = React.forwardRef<HTMLDivElement, React.HTMLAt
 )
 SidebarGroupContent.displayName = "SidebarGroupContent"
 
-// 11. Sidebar Trigger
-export const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<typeof Button>>(
-  ({ className, ...props }, ref) => {
-    const { isOpen, setIsOpen } = useSidebar()
-    return (
-      <Button
-        ref={ref}
-        variant="ghost"
-        size="icon"
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn("h-8 w-8", className)}
-        {...props}
-      >
-        {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-        <span className="sr-only">{isOpen ? "Collapse sidebar" : "Expand sidebar"}</span>
-      </Button>
-    )
-  },
-)
-SidebarTrigger.displayName = "SidebarTrigger"
+// 11. Sidebar Trigger (Removed - no longer needed)
+// export const SidebarTrigger = ...
 
-// 12. Sidebar Inset (for main content)
+// 12. Sidebar Inset (for main content - fixed margin)
 export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
-    const { isOpen, isCollapsible, variant } = useSidebar()
     return (
       <div
         ref={ref}
         className={cn(
-          "flex-1 transition-all duration-300 ease-in-out",
-          isCollapsible && isOpen && "md:ml-64", // Adjust margin based on sidebar width
-          isCollapsible && !isOpen && "md:ml-16", // Adjust margin for collapsed state
+          "flex-1 md:ml-64", // Always apply ml-64 on desktop
           className,
         )}
         {...props}
@@ -224,22 +157,5 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttribute
 )
 SidebarInset.displayName = "SidebarInset"
 
-// 13. Sidebar Overlay (for mobile)
-export const SidebarOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
-    const { isOpen, setIsOpen } = useSidebar()
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "fixed inset-0 z-20 bg-background/80 backdrop-blur-sm transition-opacity duration-300 md:hidden", // Only visible on mobile
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
-          className,
-        )}
-        onClick={() => setIsOpen(false)}
-        {...props}
-      />
-    )
-  },
-)
-SidebarOverlay.displayName = "SidebarOverlay"
+// 13. Sidebar Overlay (Removed - no longer needed)
+// export const SidebarOverlay = ...

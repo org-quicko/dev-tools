@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation"
 import { ThemeToggle } from "./theme-toggle"
-import { Menu } from "lucide-react"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+// Removed Menu import
+// Removed SidebarTrigger import
 
 const TOOL_TITLES: Record<string, { title: string; icon: string }> = {
   "/formatter": { title: "JSON Formatter", icon: "🔧" },
@@ -17,12 +17,7 @@ export function AppHeaderNav() {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-x-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6 w-full">
-      <div className="md:block">
-        <SidebarTrigger className="p-2">
-          <Menu className="h-5 w-5" />
-          <span className="sr-only">Toggle sidebar</span>
-        </SidebarTrigger>
-      </div>
+      {/* Removed SidebarTrigger from here */}
 
       {/* Tool Title */}
       {currentTool && (

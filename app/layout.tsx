@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppSidebarNav } from "@/components/app-sidebar-nav"
 import { AppHeaderNav } from "@/components/app-header-nav"
-import { SidebarProvider, SidebarInset, SidebarOverlay } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar" // Removed SidebarOverlay
 import { cookies } from "next/headers"
 
 import "./globals.css"
@@ -22,15 +22,17 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies()
-  const defaultOpen = cookieStore.get("sidebar:state")?.value !== "false" // Default to open unless explicitly set to false
+  const defaultOpen = cookieStore.get("sidebar:state")?.value !== "false" // Still useful for initial state, but sidebar won't collapse
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <SidebarProvider defaultOpen={defaultOpen} collapsible="icon">
+          <SidebarProvider defaultOpen={defaultOpen}>
+            {" "}
+            {/* Removed collapsible prop */}
             <div className="flex h-screen overflow-hidden">
-              <SidebarOverlay /> {/* Render overlay */}
+              {/* Removed SidebarOverlay */}
               <AppSidebarNav />
               <SidebarInset className="flex flex-col w-full">
                 <AppHeaderNav />
