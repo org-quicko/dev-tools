@@ -31,10 +31,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SidebarProvider defaultOpen={defaultOpen}>
             <div className="flex h-screen w-full">
               <AppSidebarNav />
-              <SidebarInset className="w-full">
+              <SidebarInset className="flex flex-col flex-1 min-w-0">
                 <AppHeaderNav />
                 <main className="flex-1 overflow-auto">
-                  <div className="h-full w-full p-4">{children}</div>
+                  <div className="h-full w-full p-6 max-w-none">{children}</div>
                 </main>
               </SidebarInset>
             </div>
