@@ -32,12 +32,21 @@ export function AppSidebarNav() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2 px-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Code className="h-4 w-4" />
-          </div>
-          <span className="text-sm font-semibold">Dev Tools</span>
-        </Link>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <Code className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">Dev Tools</span>
+                  <span className="truncate text-xs">Developer Utilities</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         {navGroups.map((group) => (
@@ -52,7 +61,7 @@ export function AppSidebarNav() {
                     <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton asChild isActive={isActive}>
                         <Link href={item.href}>
-                          <Icon className="h-4 w-4" />
+                          <Icon />
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>

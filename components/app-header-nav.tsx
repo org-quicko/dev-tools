@@ -1,10 +1,12 @@
+import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 export function AppHeaderNav() {
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4">
-      <SidebarTrigger />
-      {/* Rest of your existing header content */}
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <SidebarTrigger className="-ml-1" />
+      <Separator orientation="vertical" className="mr-2 h-4" />
+      {/* rest of header content */}
     </header>
   )
 }
