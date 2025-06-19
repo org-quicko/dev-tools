@@ -32,27 +32,41 @@ export function AppSidebarNav() {
   return (
     <Sidebar>
       <SidebarHeader>
+        {" "}
+        {/* Uses base p-3 from ui/sidebar.tsx */}
         <Link href="/" className="flex items-center gap-2 min-w-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-            <Code className="h-5 w-5" />
+          {" "}
+          {/* Content styling is fine here */}
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+            <Code className="h-4 w-4" />
           </div>
-          <span className="text-base font-semibold text-foreground leading-none truncate">Dev Tools</span>
+          <span className="text-sm font-semibold text-foreground leading-none truncate">Dev Tools</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
+        {" "}
+        {/* Uses base p-3 from ui/sidebar.tsx */}
         {navGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            {" "}
+            {/* Uses base space-y-2 from ui/sidebar.tsx */}
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel> {/* Uses base styling from ui/sidebar.tsx */}
             <SidebarGroupContent>
+              {" "}
+              {/* Uses base space-y-1 from ui/sidebar.tsx */}
               <SidebarMenu>
+                {" "}
+                {/* Uses base space-y-0.5 from ui/sidebar.tsx */}
                 {group.items.map((item) => {
                   const Icon = item.icon
                   const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
                   return (
                     <SidebarMenuItem key={item.href}>
-                      {/* REMOVED all conflicting className props from this button */}
+                      {/* No className prop here, so base styles from ui/sidebar.tsx apply */}
                       <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.href} className="flex items-center gap-3">
+                        <Link href={item.href} className="flex items-center gap-2 min-w-0">
+                          {" "}
+                          {/* Content styling */}
                           <Icon className="h-4 w-4 flex-shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </Link>

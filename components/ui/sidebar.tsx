@@ -44,7 +44,7 @@ export const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(({ className,
       ref={ref}
       className={cn(
         "flex flex-col h-screen bg-background border-r border-border",
-        "w-48 flex-shrink-0", // w-48 (192px)
+        "w-48 flex-shrink-0", // Reduced from w-64 to w-48 (192px) for better space utilization
         "fixed inset-y-0 left-0 z-30 md:relative md:translate-x-0",
         className,
       )}
@@ -57,7 +57,7 @@ Sidebar.displayName = "Sidebar"
 // 3. Sidebar Header
 export const SidebarHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex items-center p-3 border-b border-border h-14", className)} {...props} />
+    <div ref={ref} className={cn("flex items-center p-3 border-b border-border", className)} {...props} />
   ),
 )
 SidebarHeader.displayName = "SidebarHeader"
@@ -72,7 +72,7 @@ SidebarContent.displayName = "SidebarContent"
 
 // 5. Sidebar Menu
 export const SidebarMenu = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(
-  ({ className, ...props }, ref) => <ul ref={ref} className={cn("space-y-1", className)} {...props} />,
+  ({ className, ...props }, ref) => <ul ref={ref} className={cn("space-y-0.5", className)} {...props} />,
 )
 SidebarMenu.displayName = "SidebarMenu"
 
@@ -82,7 +82,7 @@ export const SidebarMenuItem = React.forwardRef<HTMLLIElement, React.HTMLAttribu
 )
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
-// 7. Sidebar Menu Button - THE SINGLE SOURCE OF TRUTH FOR STYLING
+// 7. Sidebar Menu Button
 interface SidebarMenuButtonProps extends React.ComponentPropsWithoutRef<typeof Button> {
   isActive?: boolean
   asChild?: boolean
@@ -95,9 +95,9 @@ export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenu
         ref={ref}
         variant="ghost"
         className={cn(
-          "w-full justify-start rounded-md px-3 py-2 text-sm font-normal transition-colors",
+          "w-full justify-start px-3 py-2.5 text-sm font-normal rounded-md transition-colors",
           "hover:bg-accent hover:text-accent-foreground",
-          isActive && "bg-accent text-accent-foreground font-semibold",
+          isActive && "bg-accent text-accent-foreground font-medium border-l-2 border-primary",
           className,
         )}
         asChild={asChild}
@@ -120,7 +120,7 @@ export const SidebarGroupLabel = React.forwardRef<HTMLParagraphElement, React.HT
     return (
       <p
         ref={ref}
-        className={cn("px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}
+        className={cn("px-2 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider", className)}
         {...props}
       />
     )
@@ -134,15 +134,15 @@ export const SidebarGroupContent = React.forwardRef<HTMLDivElement, React.HTMLAt
 )
 SidebarGroupContent.displayName = "SidebarGroupContent"
 
-// 11. Sidebar Inset (for main content)
+// 11. Sidebar Inset (for main content - adjusted for w-48 sidebar)
 export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          "flex-1 flex flex-col min-w-0",
-          "md:ml-48", // This should match the sidebar width (w-48)
+          "flex-1 flex flex-col min-w-0", // min-w-0 prevents flex item from overflowing
+          "md:ml-48", // Ensures this matches the sidebar width (w-48 = 192px)
           className,
         )}
         {...props}
