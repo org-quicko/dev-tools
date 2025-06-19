@@ -29,12 +29,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SidebarProvider defaultOpen={defaultOpen}>
-            <div className="flex h-screen w-full overflow-hidden">
+            <div className="flex h-screen w-full">
               <AppSidebarNav />
-              <SidebarInset className="flex flex-col flex-1 min-w-0">
+              <SidebarInset className="w-full">
                 <AppHeaderNav />
-                <main className="flex-1 overflow-auto p-4 w-full">
-                  <div className="max-w-full mx-auto">{children}</div>
+                <main className="flex-1 overflow-auto">
+                  <div className="h-full w-full p-4">{children}</div>
                 </main>
               </SidebarInset>
             </div>

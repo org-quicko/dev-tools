@@ -258,14 +258,21 @@
   overflow: hidden;
 }
 
+/* ===== SIDEBAR OPTIMIZATIONS ===== */
+.sidebar-optimized {
+  width: 192px; /* 12rem / w-48 */
+}
+
 /* ===== UNIFORM PANEL HEIGHT STRUCTURE - REDUCED GAPS ===== */
 .uniform-panel-container {
-  height: calc(100vh - 140px); /* Reduced from 180px to 140px */
+  height: calc(100vh - 120px); /* Further reduced for tighter layout */
   min-height: 400px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem; /* Reduced from 0.75rem to 0.5rem */
 }
+
+/* Update the uniform panel container for better space usage */
 
 .panel {
   height: 100%;
@@ -395,6 +402,12 @@
   min-height: 0;
 }
 
+/* Ensure main content uses full available width */
+.main-content-full {
+  width: calc(100vw - 192px); /* Full viewport width minus sidebar */
+  max-width: none;
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
   .uniform-panel-container {
@@ -460,6 +473,10 @@
     font-size: 10px;
     min-height: 18px; /* Reduced from 20px to 18px */
     line-height: 18px; /* Reduced from 20px to 18px */
+  }
+
+  .main-content-full {
+    width: 100vw; /* Full width on mobile */
   }
 }
 
