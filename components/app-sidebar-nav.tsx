@@ -32,19 +32,29 @@ export function AppSidebarNav() {
 
   return (
     <Sidebar className="border-r border-border">
-      {" "}
-      {/* Removed collapsible prop */}
-      <SidebarHeader className="p-4 flex items-center justify-between">
+      <SidebarHeader className="p-3">
+        {" "}
+        {/* Reduced padding from p-4 to p-3 */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Code className="h-5 w-5" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            {" "}
+            {/* Reduced from h-8 w-8 to h-6 w-6 */}
+            <Code className="h-4 w-4" /> {/* Reduced from h-5 w-5 to h-4 w-4 */}
           </div>
-          <span className="text-lg font-semibold text-foreground">Dev Tools</span>
+          <span className="text-base font-semibold text-foreground leading-none">
+            {" "}
+            {/* Reduced from text-lg to text-base, added leading-none */}
+            Dev Tools
+          </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="p-4">
+      <SidebarContent className="p-3">
+        {" "}
+        {/* Reduced padding from p-4 to p-3 */}
         {navGroups.map((group) => (
-          <SidebarGroup key={group.label} className="mb-4">
+          <SidebarGroup key={group.label} className="mb-3">
+            {" "}
+            {/* Reduced from mb-4 to mb-3 */}
             {group.label && (
               <SidebarGroupLabel className="text-xs text-muted-foreground uppercase tracking-wider px-2 py-1">
                 {group.label}
@@ -61,7 +71,7 @@ export function AppSidebarNav() {
                         asChild
                         isActive={isActive}
                         className={cn(
-                          "justify-start gap-2 px-2 py-2 text-sm",
+                          "justify-start gap-2 px-2 py-1.5 text-sm" /* Reduced from py-2 to py-1.5 */,
                           isActive && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
                           !isActive && "hover:bg-muted/50",
                         )}
