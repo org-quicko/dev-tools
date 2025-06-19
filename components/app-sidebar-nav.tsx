@@ -1,79 +1,59 @@
 "use client"
 
-import type * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileJson, GitCompare, FileText, Code } from "lucide-react"
-
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
+  SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar"
+import { FileJson, GitCompare, FileText, Code } from "lucide-react"
 
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "JSON Tools",
-      items: [
-        {
-          title: "Formatter",
-          url: "/formatter",
-          icon: FileText,
-        },
-        {
-          title: "Comparator",
-          url: "/comparator",
-          icon: GitCompare,
-        },
-        {
-          title: "Schema Validator",
-          url: "/validator",
-          icon: FileJson,
-        },
-      ],
-    },
-  ],
-}
+const navGroups = [
+  {
+    label: "JSON Tools",
+    items: [
+      { href: "/formatter", label: "Formatter", icon: FileText },
+      { href: "/comparator", label: "Comparator", icon: GitCompare },
+      { href: "/validator", label: "Schema Validator", icon: FileJson },
+    ],
+  },
+]
 
-export function AppSidebarNav({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebarNav() {
   const pathname = usePathname()
 
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Code className="size-4" />
+        <Link href="/" className="flex items-center gap-2 px-2">
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Code className="h-4 w-4" />
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Dev Tools</span>
-            <span className="truncate text-xs">JSON Utilities</span>
-          </div>
+          <span className="text-sm font-semibold">Dev Tools</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        {data.navMain.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {item.items.map((item) => {
-                  const isActive = pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url))
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
                   return (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem key={item.href}>
                       <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.url}>
-                          <item.icon />
-                          <span>{item.title}</span>
+                        <Link href={item.href}>
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -84,7 +64,6 @@ export function AppSidebarNav({ ...props }: React.ComponentProps<typeof Sidebar>
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarRail />
     </Sidebar>
   )
 }

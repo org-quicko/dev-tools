@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AppSidebarNav } from "@/components/app-sidebar-nav"
 import { AppHeaderNav } from "@/components/app-header-nav"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { cookies } from "next/headers"
 
 import "./globals.css"
 
@@ -19,20 +20,21 @@ export const metadata = {
     generator: 'v0.dev'
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const defaultOpen = cookieStore.get("sidebar:state")?.value === "true"
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <SidebarProvider>
+          <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebarNav />
             <SidebarInset>
               <AppHeaderNav />
-              <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+              <main className="flex-1 overflow-auto">
+                <div className="h-full w-full p-4">{children}</div>
+              </main>
             </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
