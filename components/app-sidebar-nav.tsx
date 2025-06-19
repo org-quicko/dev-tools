@@ -1,7 +1,10 @@
 "use client"
 
+import type * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { FileJson, GitCompare, FileText, Code } from "lucide-react"
+
 import {
   Sidebar,
   SidebarContent,
@@ -12,9 +15,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar"
-import { FileJson, GitCompare, FileText, Code } from "lucide-react"
 
+// This is sample data.
 const data = {
   navMain: [
     {
@@ -40,29 +44,29 @@ const data = {
   ],
 }
 
-export function AppSidebarNav() {
+export function AppSidebarNav({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
 
   return (
-    <Sidebar variant="inset">
+    <Sidebar variant="inset" {...props}>
       <SidebarHeader>
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Code className="h-4 w-4" />
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <Code className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Dev Tools</span>
-            <span className="truncate text-xs">Developer Utilities</span>
+            <span className="truncate text-xs">JSON Utilities</span>
           </div>
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        {data.navMain.map((group) => (
-          <SidebarGroup key={group.title}>
-            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+        {data.navMain.map((item) => (
+          <SidebarGroup key={item.title}>
+            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => {
+                {item.items.map((item) => {
                   const isActive = pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url))
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -80,6 +84,7 @@ export function AppSidebarNav() {
           </SidebarGroup>
         ))}
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   )
 }
