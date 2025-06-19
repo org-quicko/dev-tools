@@ -142,7 +142,7 @@ export const SidebarInset = React.forwardRef<HTMLDivElement, React.HTMLAttribute
         ref={ref}
         className={cn(
           "flex-1 flex flex-col min-w-0", // min-w-0 prevents flex item from overflowing
-          "md:ml-48", // Adjusted from ml-64 to ml-48 to match sidebar width
+          "md:ml-8", // Adjusted from ml-48 to ml-8 (32px) to reduce gap
           className,
         )}
         {...props}
