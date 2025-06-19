@@ -33,10 +33,10 @@ export function AppSidebarNav() {
     <Sidebar>
       <SidebarHeader>
         <Link href="/" className="flex items-center gap-2 min-w-0">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
-            <Code className="h-4 w-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+            <Code className="h-5 w-5" />
           </div>
-          <span className="text-sm font-semibold text-foreground leading-none truncate">Dev Tools</span>
+          <span className="text-base font-semibold text-foreground leading-none truncate">Dev Tools</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -50,8 +50,9 @@ export function AppSidebarNav() {
                   const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
                   return (
                     <SidebarMenuItem key={item.href}>
+                      {/* REMOVED all conflicting className props from this button */}
                       <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.href} className="flex items-center gap-2 min-w-0">
+                        <Link href={item.href} className="flex items-center gap-3">
                           <Icon className="h-4 w-4 flex-shrink-0" />
                           <span className="truncate">{item.label}</span>
                         </Link>
