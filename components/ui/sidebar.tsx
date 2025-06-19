@@ -94,9 +94,12 @@ export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenu
       <Button
         ref={ref}
         variant="ghost"
-        size="sm"
+        // Increased padding (px-3 py-2) and removed fixed height (h-8)
+        // to allow padding to define the button's height and increase click area.
+        // Hover and click states are handled by the default 'ghost' variant
+        // and the 'isActive' prop.
         className={cn(
-          "w-full justify-start h-8 px-2 text-sm font-normal",
+          "w-full justify-start px-3 py-2 text-sm font-normal", // Increased padding
           isActive && "bg-accent text-accent-foreground font-medium",
           className,
         )}
