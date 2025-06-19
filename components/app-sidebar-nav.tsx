@@ -5,70 +5,71 @@ import { usePathname } from "next/navigation"
 import {
   Sidebar,
   SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { FileJson, GitCompare, FileText, Code } from "lucide-react"
 
-const navGroups = [
-  {
-    label: "JSON Tools",
-    items: [
-      { href: "/formatter", label: "Formatter", icon: FileText },
-      { href: "/comparator", label: "Comparator", icon: GitCompare },
-      { href: "/validator", label: "Schema Validator", icon: FileJson },
-    ],
-  },
-]
+const data = {
+  navMain: [
+    {
+      title: "JSON Tools",
+      items: [
+        {
+          title: "Formatter",
+          url: "/formatter",
+          icon: FileText,
+        },
+        {
+          title: "Comparator",
+          url: "/comparator",
+          icon: GitCompare,
+        },
+        {
+          title: "Schema Validator",
+          url: "/validator",
+          icon: FileJson,
+        },
+      ],
+    },
+  ],
+}
 
 export function AppSidebarNav() {
   const pathname = usePathname()
 
   return (
-    <Sidebar>
+    <Sidebar variant="inset">
       <SidebarHeader>
-        {" "}
-        {/* Uses base p-3 from ui/sidebar.tsx */}
-        <Link href="/" className="flex items-center gap-2 min-w-0">
-          {" "}
-          {/* Content styling is fine here */}
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-primary-foreground flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Code className="h-4 w-4" />
           </div>
-          <span className="text-sm font-semibold text-foreground leading-none truncate">Dev Tools</span>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">Dev Tools</span>
+            <span className="truncate text-xs">Developer Utilities</span>
+          </div>
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        {" "}
-        {/* Uses base p-3 from ui/sidebar.tsx */}
-        {navGroups.map((group) => (
-          <SidebarGroup key={group.label}>
-            {" "}
-            {/* Uses base space-y-2 from ui/sidebar.tsx */}
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel> {/* Uses base styling from ui/sidebar.tsx */}
+        {data.navMain.map((group) => (
+          <SidebarGroup key={group.title}>
+            <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarGroupContent>
-              {" "}
-              {/* Uses base space-y-1 from ui/sidebar.tsx */}
               <SidebarMenu>
-                {" "}
-                {/* Uses base space-y-0.5 from ui/sidebar.tsx */}
                 {group.items.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
+                  const isActive = pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url))
                   return (
-                    <SidebarMenuItem key={item.href}>
-                      {/* No className prop here, so base styles from ui/sidebar.tsx apply */}
+                    <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.href} className="flex items-center gap-2 min-w-0">
-                          {" "}
-                          {/* Content styling */}
-                          <Icon className="h-4 w-4 flex-shrink-0" />
-                          <span className="truncate">{item.label}</span>
+                        <Link href={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
