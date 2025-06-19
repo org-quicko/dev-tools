@@ -72,7 +72,7 @@ SidebarContent.displayName = "SidebarContent"
 
 // 5. Sidebar Menu
 export const SidebarMenu = React.forwardRef<HTMLUListElement, React.HTMLAttributes<HTMLUListElement>>(
-  ({ className, ...props }, ref) => <ul ref={ref} className={cn("space-y-1", className)} {...props} />,
+  ({ className, ...props }, ref) => <ul ref={ref} className={cn("space-y-0.5", className)} {...props} />,
 )
 SidebarMenu.displayName = "SidebarMenu"
 
@@ -94,13 +94,10 @@ export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenu
       <Button
         ref={ref}
         variant="ghost"
-        // Increased padding (px-3 py-2) and removed fixed height (h-8)
-        // to allow padding to define the button's height and increase click area.
-        // Hover and click states are handled by the default 'ghost' variant
-        // and the 'isActive' prop.
         className={cn(
-          "w-full justify-start px-3 py-2 text-sm font-normal", // Increased padding
-          isActive && "bg-accent text-accent-foreground font-medium",
+          "w-full justify-start px-3 py-2.5 text-sm font-normal rounded-md transition-colors",
+          "hover:bg-accent hover:text-accent-foreground",
+          isActive && "bg-accent text-accent-foreground font-medium border-l-2 border-primary",
           className,
         )}
         asChild={asChild}
