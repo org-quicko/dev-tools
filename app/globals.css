@@ -100,7 +100,7 @@
 
   /* Consistent container styling - REDUCED PADDING */
   .tool-container {
-    @apply px-4 py-3; /* Reduced from py-6 to py-3 */
+    @apply px-2 py-2; /* Reduced padding further */
   }
 
   /* Unified card styling with zinc theme */
@@ -260,11 +260,11 @@
 
 /* ===== UNIFORM PANEL HEIGHT STRUCTURE - REDUCED GAPS ===== */
 .uniform-panel-container {
-  height: calc(100vh - 180px); /* Reduced from 220px to 180px */
+  height: calc(100vh - 140px); /* Reduced from 180px to 140px */
   min-height: 400px;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.75rem; /* Reduced from 1rem to 0.75rem */
+  gap: 0.5rem; /* Reduced from 0.75rem to 0.5rem */
 }
 
 .panel {
@@ -400,7 +400,7 @@
   .uniform-panel-container {
     height: auto;
     grid-template-columns: 1fr;
-    gap: 0.5rem; /* Reduced gap for mobile */
+    gap: 0.25rem; /* Reduced gap for mobile */
   }
 
   .content-grid {
@@ -413,7 +413,7 @@
   }
 
   .tool-container {
-    @apply px-2 py-2; /* Reduced from py-4 to py-2 */
+    @apply px-1 py-1; /* Further reduced for mobile */
   }
 
   .tool-header-content {
