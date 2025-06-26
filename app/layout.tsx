@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { cookies } from "next/headers"
+import { DynamicHeader } from "@/components/dynamic-header"
 
 import "./globals.css"
 
@@ -16,7 +17,7 @@ const fontSans = FontSans({
 export const metadata = {
   title: "Dev Tools",
   description: "A collection of everyday utilities for developers.",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -30,14 +31,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar />
             <SidebarInset>
-              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                <div className="flex items-center gap-2 px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <div className="h-4 w-px bg-sidebar-border" />
-                  <h1 className="font-semibold">Dev Tools</h1>
-                </div>
-              </header>
-              <main className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</main>
+              <DynamicHeader />
+              <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                {children}
+              </main>
             </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
