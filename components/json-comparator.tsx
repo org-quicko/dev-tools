@@ -338,23 +338,9 @@ export function JsonComparator() {
   // Top controls
   const topControls = (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Button
-          onClick={performComparison}
-          disabled={isComparing || (!json1.trim() && !json2.trim())}
-          className="bg-primary hover:bg-primary/90"
-        >
-          <GitCompare className="h-4 w-4 mr-2" />
-          {isComparing ? "Comparing..." : "Compare"}
-        </Button>
-        <div className="flex items-center gap-2">
-          <Switch id="realtime-compare" checked={realTimeCompare} onCheckedChange={setRealTimeCompare} />
-          <Label htmlFor="realtime-compare" className="text-sm">
-            Real-time
-          </Label>
-        </div>
-      </div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 ml-auto">
+        {" "}
+        {/* Add ml-auto to push to right */}
         <Select
           value={settings.indentation.toString()}
           onValueChange={(value) => setSettings((prev) => ({ ...prev, indentation: Number.parseInt(value) }))}
