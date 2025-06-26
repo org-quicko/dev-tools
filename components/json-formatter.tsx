@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -30,7 +30,15 @@ export function JsonFormatter() {
     sortKeys: false,
   })
 
-  // Removed useRef and useEffect for auto-resizing as scrolling is now handled by main window
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize input textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto"
+      inputRef.current.style.height = inputRef.current.scrollHeight + "px"
+    }
+  }, [jsonInput])
 
   const validateAndFormat = useCallback(
     (input: string) => {
@@ -273,11 +281,12 @@ export function JsonFormatter() {
             <CardContent className="flex flex-col p-4 pt-0">
               <div className="relative flex-1">
                 <textarea
+                  ref={inputRef}
                   value={jsonInput}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="Paste your JSON here or upload a file..."
-                  className="zinc-textarea w-full font-mono text-sm resize-none border rounded-lg p-3 bg-background text-foreground min-h-[400px]"
-                  style={{ minHeight: "400px" }}
+                  className="zinc-textarea w-full font-mono text-sm resize-none border rounded-lg p-3 bg-background text-foreground overflow-hidden"
+                  rows={10} // Initial rows for visibility
                 />
                 {!jsonInput && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">

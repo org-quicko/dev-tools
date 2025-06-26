@@ -29,9 +29,9 @@ export function JsonToolsHomepage() {
     <div className="w-full max-w-none space-y-6">
       {/* Hero Section */}
       <div className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight">Developer Utilities</h1>
-        <p className="text-xl text-muted-foreground">Simple tools, thoughtfully made.</p>
-        <p className="text-xl text-muted-foreground max-w-4xl italic">
+        <h1 className="text-4xl font-bold tracking-tight">Dev Tools</h1>
+
+        <p className="text-muted-foreground max-w-4xl text-lg">
           A growing collection of focused tools for everyday development work.
           <br />
           No accounts. No clutter. Just useful tools that run instantly in your browser.
@@ -48,7 +48,7 @@ export function JsonToolsHomepage() {
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-muted-foreground text-sm">
-                Each tool does one job, simply and clearly—so you can stay in flow and get back to what matters.
+                Each tool does one job, simply and clearly, so you can stay in flow and get back to what matters.
               </p>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ export function JsonToolsHomepage() {
 
       {/* Available Tools Section */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Available JSON Tools</h2>
+        <h2 className="text-2xl font-semibold">Available Tools</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {tools.map((tool) => {
             const Icon = tool.icon
@@ -110,7 +110,8 @@ export function JsonToolsHomepage() {
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
-          This is just the start. More tools are on the way—crafted with the same care and clarity.
+          Simple tools, thoughtfully made
+          <br />
         </p>
       </div>
     </div>

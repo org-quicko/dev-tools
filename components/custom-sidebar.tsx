@@ -137,11 +137,7 @@ export function CustomSidebar() {
       </nav>
 
       {/* Footer */}
-      {isExpanded && (
-        <div className="border-t p-4">
-          <p className="text-xs text-muted-foreground">Built with v0 by Vercel</p>
-        </div>
-      )}
+      
     </aside>
   )
 }
