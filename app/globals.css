@@ -145,6 +145,16 @@
     @apply shadow-md;
     box-shadow: 0 4px 6px -1px hsl(var(--muted-foreground) / 0.1);
   }
+
+  .zinc-status-success {
+    @apply inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 ring-inset ring-green-600/20;
+    @apply dark:bg-green-900/20 dark:text-green-400;
+  }
+
+  .zinc-status-error {
+    @apply inline-flex items-center rounded-md bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 ring-inset ring-red-600/20;
+    @apply dark:bg-red-900/20 dark:text-red-400;
+  }
 }
 
 /* ===== EXISTING LAYOUT STRUCTURE ===== */
