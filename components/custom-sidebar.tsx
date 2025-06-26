@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, FileText, GitCompare, CheckSquare, Menu } from "lucide-react"
+import { Home, FileText, GitCompare, CheckSquare, Menu, Code } from "lucide-react"
 
 // Sidebar Context
 interface SidebarContextType {
@@ -93,12 +93,16 @@ export function CustomSidebar() {
       <div className="flex h-16 items-center border-b px-4">
         {isExpanded ? (
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded bg-primary" />
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
+              <Code className="h-4 w-4 text-primary-foreground" />
+            </div>
             <span className="font-semibold">Dev Tools</span>
           </div>
         ) : (
           <div className="flex w-full justify-center">
-            <div className="h-6 w-6 rounded bg-primary" />
+            <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
+              <Code className="h-4 w-4 text-primary-foreground" />
+            </div>
           </div>
         )}
       </div>
