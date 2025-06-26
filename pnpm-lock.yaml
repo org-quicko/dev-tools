@@ -152,6 +152,9 @@ importers:
       sonner:
         specifier: latest
         version: 2.0.5(react-dom@18.0.0(react@18.0.0))(react@18.0.0)
+      sugar-high:
+        specifier: latest
+        version: 0.9.3
       tailwind-merge:
         specifier: ^2.5.5
         version: 2.5.5
@@ -2859,6 +2862,9 @@ packages:
     resolution: {integrity: sha512-8EbVDiu9iN/nESwxeSxDKe0dunta1GOlHufmSSXxMD2z2/tMZpDMpvXQGsc+ajGo8y2uYUmixaSRUc/QPoQ0GA==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
+
+  sugar-high@0.9.3:
+    resolution: {integrity: sha512-sjJH8J76D1dRMU3QINnsYr1wfQyXbyEVQQvdgzJvIer6mkgM8ahB9fNrb+FDWzRKsLuITiBOR0ZbbhDZDUbqjg==}
 
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -5995,6 +6001,8 @@ snapshots:
       mz: 2.7.0
       pirates: 4.0.7
       ts-interface-checker: 0.1.13
+
+  sugar-high@0.9.3: {}
 
   supports-color@7.2.0:
     dependencies:
