@@ -18,7 +18,6 @@ import {
   ChevronRight,
   FileJson,
   Download,
-  Zap,
 } from "lucide-react"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { FlexibleToolLayout, ColumnEmptyState, ColumnLoadingState } from "./flexible-tool-layout"
@@ -44,7 +43,6 @@ export function JsonSchemaValidatorEnhanced() {
 
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null)
   const [isValidating, setIsValidating] = useState(false)
-  const [realTimeValidation, setRealTimeValidation] = useState(true)
   const [validatorOptions, setValidatorOptions] = useState<ValidatorOptions>({
     draft: "auto",
     strict: false,
@@ -106,12 +104,11 @@ export function JsonSchemaValidatorEnhanced() {
   }, [jsonInput, schemaInput, validatorOptions])
 
   useEffect(() => {
-    if (!realTimeValidation) return
     const timeoutId = setTimeout(() => {
       validateJsonCallback()
     }, 500)
     return () => clearTimeout(timeoutId)
-  }, [jsonInput, schemaInput, realTimeValidation, validateJsonCallback])
+  }, [jsonInput, schemaInput, validateJsonCallback]) // Removed realTimeValidation from dependencies
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: "json" | "schema") => {
     const file = event.target.files?.[0]
@@ -215,23 +212,7 @@ export function JsonSchemaValidatorEnhanced() {
 
   // Top controls
   const topControls = (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <Button
-          onClick={validateJsonCallback}
-          disabled={isValidating || !jsonInput.trim() || !schemaInput.trim()}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          {isValidating ? <Zap className="h-4 w-4 mr-2 animate-spin" /> : <Shield className="h-4 w-4 mr-2" />}
-          {isValidating ? "Validating..." : "Validate"}
-        </Button>
-        <div className="flex items-center gap-2">
-          <Switch id="real-time" checked={realTimeValidation} onCheckedChange={setRealTimeValidation} />
-          <Label htmlFor="real-time" className="text-sm">
-            Real-time
-          </Label>
-        </div>
-      </div>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4 w-full">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <Select
           value={validatorOptions.draft}
