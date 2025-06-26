@@ -1,32 +1,48 @@
-import type { ComparisonSettings } from "@/types/comparison"
-
-export function prettifyJson(jsonText: string, settings: ComparisonSettings): string {
+export function prettifyJson(jsonString: string, settings: { indentation: number; sortKeys: boolean }): string {
   try {
-    const parsed = JSON.parse(jsonText)
-    const processed = settings.sortKeys ? sortObjectKeys(parsed) : parsed
-    return JSON.stringify(processed, null, settings.indentation)
+    // Parse the JSON string
+    const parsed = JSON.parse(jsonString)
+
+    // Create a replacer function for sorting keys if needed
+    const replacer = settings.sortKeys
+      ? (key: string, value: any) => {
+          if (value && typeof value === "object" && !Array.isArray(value)) {
+            const sortedObj: any = {}
+            Object.keys(value)
+              .sort()
+              .forEach((k) => {
+                sortedObj[k] = value[k]
+              })
+            return sortedObj
+          }
+          return value
+        }
+      : null
+
+    // Stringify with proper indentation
+    return JSON.stringify(parsed, replacer, settings.indentation)
   } catch (error) {
-    throw new Error("Invalid JSON: " + (error as Error).message)
+    throw new Error("Invalid JSON format")
   }
 }
 
-function sortObjectKeys(obj: any): any {
-  if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys)
-  } else if (obj !== null && typeof obj === "object") {
-    const sorted: any = {}
-    Object.keys(obj)
-      .sort()
-      .forEach((key) => {
-        sorted[key] = sortObjectKeys(obj[key])
-      })
-    return sorted
+export function minifyJson(jsonString: string): string {
+  try {
+    const parsed = JSON.parse(jsonString)
+    return JSON.stringify(parsed)
+  } catch (error) {
+    throw new Error("Invalid JSON format")
   }
-  return obj
 }
 
-export function validateJsonSchema(json: string, schema: any): { valid: boolean; errors: string[] } {
-  // This would integrate with a JSON schema validation library like Ajv
-  // For now, returning a placeholder
-  return { valid: true, errors: [] }
+export function validateJson(jsonString: string): { isValid: boolean; error?: string } {
+  try {
+    JSON.parse(jsonString)
+    return { isValid: true }
+  } catch (error) {
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : "Invalid JSON format",
+    }
+  }
 }
