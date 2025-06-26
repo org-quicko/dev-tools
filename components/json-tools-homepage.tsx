@@ -30,7 +30,7 @@ export function JsonToolsHomepage() {
       {/* Hero Section */}
       <div className="space-y-3">
         <h1 className="text-4xl font-bold tracking-tight">Developer Utilities</h1>
-        <p className="text-xl text-muted-foreground">Simple tools, thoughtfully made.</p>
+        
         <p className="text-xl text-muted-foreground max-w-4xl italic">
           A growing collection of focused tools for everyday development work.
           <br />
