@@ -219,7 +219,7 @@ async function createComparisonSheet(
 
             // Ensure row has a minimum height and auto-adjusts for wrapped text
             // ExcelJS handles auto-height when wrapText is true, so setting a minimum is sufficient.
-            excelRow.height = Math.max(20, excelRow.height || 0) // Minimum height of 20
+            //excelRow.height = Math.max(20, excelRow.height || 0) // Minimum height of 20
           }
         } catch (rowStyleError) {
           console.warn(`Row ${index} styling failed, continuing:`, rowStyleError)
