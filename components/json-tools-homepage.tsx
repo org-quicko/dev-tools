@@ -6,19 +6,19 @@ import { Button } from "@/components/ui/button"
 const tools = [
   {
     title: "JSON Formatter",
-    description: "Format and beautify JSON data with syntax highlighting and validation.",
+    description: "Format and inspect JSON with syntax highlighting and clean structure.",
     href: "/formatter",
     icon: FileText,
   },
   {
     title: "JSON Comparator",
-    description: "Compare two JSON objects and highlight differences with detailed analysis.",
+    description: "Compare two JSON files side-by-side and spot differences instantly.",
     href: "/comparator",
     icon: GitCompare,
   },
   {
     title: "Schema Validator",
-    description: "Validate JSON data against JSON Schema with comprehensive error reporting.",
+    description: "Validate JSON against a schema with clear, detailed feedback.",
     href: "/validator",
     icon: FileJson,
   },
@@ -30,34 +30,45 @@ export function JsonToolsHomepage() {
       {/* Hero Section */}
       <div className="space-y-3">
         <h1 className="text-4xl font-bold tracking-tight">Developer Utilities</h1>
+        <p className="text-xl text-muted-foreground">Simple tools, thoughtfully made.</p>
         <p className="text-xl text-muted-foreground max-w-4xl">
-          {"A growing collection of focused tools for everyday development work.\n\nNo accounts. No clutter. Just useful tools that run instantly in your browser."}
+          A growing collection of focused tools for everyday development work.
+          <br />
+          No accounts. No clutter. Just useful tools that run instantly in your browser.
         </p>
       </div>
 
       {/* Why These Tools Section */}
       <div className="space-y-4">
         <h2 className="text-2xl font-semibold">Why These Tools?</h2>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           <Card className="p-4">
             <CardHeader className="p-0 pb-2">
-              <CardTitle className="text-lg">Save Time & Effort</CardTitle>
+              <CardTitle className="text-lg">Focused by Design</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-muted-foreground text-sm">
-                Automate common tasks like formatting JSON, comparing data structures, or validating schemas. Focus on
-                building, not on tedious manual work.
+                Each tool does one job, simply and clearly—so you can stay in flow and get back to what matters.
               </p>
             </CardContent>
           </Card>
           <Card className="p-4">
             <CardHeader className="p-0 pb-2">
-              <CardTitle className="text-lg">Privacy First</CardTitle>
+              <CardTitle className="text-lg">Ready When You Are</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-muted-foreground text-sm">
-                All tools run entirely in your browser. Your data never leaves your machine, ensuring complete privacy
-                and security. No sign-ups, no tracking.
+                No setup. No downloads. Open a tool and start working. Everything runs in the browser.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="p-4">
+            <CardHeader className="p-0 pb-2">
+              <CardTitle className="text-lg">Open & Evolving</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <p className="text-muted-foreground text-sm">
+                Built for the community. Free and open-source, with more tools coming soon.
               </p>
             </CardContent>
           </Card>
@@ -99,8 +110,7 @@ export function JsonToolsHomepage() {
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
-          More tools are planned. This project is open source and aims to be a reliable companion for everyday
-          development tasks.
+          This is just the start. More tools are on the way—crafted with the same care and clarity.
         </p>
       </div>
     </div>
