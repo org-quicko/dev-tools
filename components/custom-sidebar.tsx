@@ -137,9 +137,7 @@ export function CustomSidebar() {
       </nav>
 
       {/* Footer */}
-      {isExpanded && (
-        
-      )}
+      
     </aside>
   )
 }
