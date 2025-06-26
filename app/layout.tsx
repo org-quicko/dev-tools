@@ -2,9 +2,8 @@ import type React from "react"
 import { Mona_Sans as FontSans } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
-import { AppSidebarNav } from "@/components/app-sidebar-nav"
-import { AppHeaderNav } from "@/components/app-header-nav"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 import { cookies } from "next/headers"
 
 import "./globals.css"
@@ -29,12 +28,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebarNav />
+            <AppSidebar />
             <SidebarInset>
-              <AppHeaderNav />
-              <main className="flex-1 overflow-auto">
-                <div className="h-full w-full p-4">{children}</div>
-              </main>
+              <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                <div className="flex items-center gap-2 px-4">
+                  <SidebarTrigger className="-ml-1" />
+                  <div className="h-4 w-px bg-sidebar-border" />
+                  <h1 className="font-semibold">Dev Tools</h1>
+                </div>
+              </header>
+              <main className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</main>
             </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
