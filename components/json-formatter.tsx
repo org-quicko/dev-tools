@@ -289,39 +289,21 @@ export function JsonFormatter() {
             </CardHeader>
             <CardContent className="flex flex-col p-4 pt-0">
               <div className="relative flex-1">
-                {jsonInput ? (
-                  <JsonSyntaxHighlighter
-                    json={jsonInput}
-                    className="w-full font-mono text-sm border rounded-lg p-3"
-                    style={{ minHeight: "400px", maxHeight: "600px", overflowY: "auto" }}
-                  />
-                ) : (
-                  <div className="relative">
-                    <textarea
-                      ref={inputRef}
-                      value={jsonInput}
-                      onChange={(e) => handleInputChange(e.target.value)}
-                      placeholder=""
-                      className="zinc-textarea w-full font-mono text-sm resize-none"
-                      style={{ minHeight: "400px", overflowY: "hidden" }}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
-                      <p className="mb-4">Paste your JSON here or upload a file...</p>
-                      <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Insert Example JSON
-                      </Button>
-                    </div>
+                <textarea
+                  ref={inputRef}
+                  value={jsonInput}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  placeholder="Paste your JSON here or upload a file..."
+                  className="zinc-textarea w-full font-mono text-sm resize-none border rounded-lg p-3 bg-background text-foreground"
+                  style={{ minHeight: "400px", overflowY: "auto" }}
+                />
+                {!jsonInput && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
+                    <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Insert Example JSON
+                    </Button>
                   </div>
-                )}
-                {jsonInput && (
-                  <textarea
-                    ref={inputRef}
-                    value={jsonInput}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    className="absolute inset-0 w-full h-full font-mono text-sm resize-none bg-transparent text-transparent caret-white z-10 p-3"
-                    style={{ minHeight: "400px" }}
-                  />
                 )}
               </div>
               <input
