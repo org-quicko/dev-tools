@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn("min-h-screen bg-background font-sans antialiased")}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <SidebarProvider defaultExpanded={true}>
-            <div className="text-muted-foreground text-base">
+            <div className="flex h-screen overflow-hidden">
               <CustomSidebar />
               <SidebarInset>
                 <DynamicHeader />

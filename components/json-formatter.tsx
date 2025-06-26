@@ -285,7 +285,8 @@ export function JsonFormatter() {
                   value={jsonInput}
                   onChange={(e) => handleInputChange(e.target.value)}
                   placeholder="Paste your JSON here or upload a file..."
-                  className="zinc-textarea w-full font-mono text-sm resize-none border rounded-lg p-3 bg-background text-foreground min-h-[400px]"
+                  className="zinc-textarea w-full font-mono text-sm resize-none border rounded-lg p-3 bg-background text-foreground overflow-hidden"
+                  rows={10} // Initial rows for visibility
                 />
                 {!jsonInput && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
