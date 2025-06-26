@@ -159,7 +159,7 @@ export function JsonInput({
                     bgClass = "bg-green-50 dark:bg-green-900/30 border-l-2 border-green-500"
                     break
                   case "deletion":
-                    bgClass = "bg-red-50 dark:bg-red-900/30 border-l-2 border-red-500"
+                    bgClass = "bg-destructive/5 dark:bg-destructive/10 border-l-2 border-destructive"
                     break
                   case "modification":
                     bgClass = "bg-blue-50 dark:bg-blue-900/30 border-l-2 border-blue-500"
