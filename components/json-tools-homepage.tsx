@@ -29,7 +29,7 @@ export function JsonToolsHomepage() {
     <div className="w-full max-w-none space-y-6">
       {/* Hero Section */}
       <div className="space-y-3">
-        <h1 className="text-4xl font-bold tracking-tight">Developer Utilities</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Dev Tools</h1>
 
         <p className="text-muted-foreground max-w-4xl text-lg">
           A growing collection of focused tools for everyday development work.
