@@ -31,7 +31,7 @@ export function JsonToolsHomepage() {
       <div className="space-y-3">
         <h1 className="text-4xl font-bold tracking-tight">Developer Utilities</h1>
         <p className="text-xl text-muted-foreground max-w-4xl">
-          {"A growing collection of focused tools for everyday development work.\nNo accounts. No clutter. Just useful tools that run instantly in your browser."}
+          {"A growing collection of focused tools for everyday development work.\n\nNo accounts. No clutter. Just useful tools that run instantly in your browser."}
         </p>
       </div>
 
