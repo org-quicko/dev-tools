@@ -26,7 +26,6 @@
     "ajv-keywords": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "exceljs": "latest",
     "js-yaml": "latest",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
