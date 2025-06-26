@@ -93,8 +93,8 @@ const PRESET_EXAMPLES = {
 
 export function JsonComparator() {
   // State
-  const [json1, setJson1] = useState("") // Removed pre-loaded data
-  const [json2, setJson2] = useState("") // Removed pre-loaded data
+  const [json1, setJson1] = useState("")
+  const [json2, setJson2] = useState("")
   const [json1Name, setJson1Name] = useState("JSON_1.json")
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
@@ -172,11 +172,11 @@ export function JsonComparator() {
   // Event handlers
   const handleJson1Change = (value: string, fileName?: string) => {
     try {
-      const formatted = prettifyJson(value, settings) // Auto-format on change
+      const formatted = prettifyJson(value, settings)
       setJson1(formatted)
       setJson1Error(undefined)
     } catch (err) {
-      setJson1(value) // Keep original if invalid
+      setJson1(value)
       setJson1Error("Invalid JSON: Cannot format")
     }
     if (fileName) setJson1Name(fileName)
@@ -184,11 +184,11 @@ export function JsonComparator() {
 
   const handleJson2Change = (value: string, fileName?: string) => {
     try {
-      const formatted = prettifyJson(value, settings) // Auto-format on change
+      const formatted = prettifyJson(value, settings)
       setJson2(formatted)
       setJson2Error(undefined)
     } catch (err) {
-      setJson2(value) // Keep original if invalid
+      setJson2(value)
       setJson2Error("Invalid JSON: Cannot format")
     }
     if (fileName) setJson2Name(fileName)
@@ -204,9 +204,9 @@ export function JsonComparator() {
     try {
       const content = await file.text()
       if (target === "json1") {
-        handleJson1Change(content, file.name) // Will auto-format
+        handleJson1Change(content, file.name)
       } else {
-        handleJson2Change(content, file.name) // Will auto-format
+        handleJson2Change(content, file.name)
       }
     } catch (err) {
       const setError = target === "json1" ? setJson1Error : setJson2Error
@@ -220,8 +220,8 @@ export function JsonComparator() {
   const handleClearAll = () => {
     setJson1("")
     setJson2("")
-    setJson1Name("JSON_1.json") // Reset to default name
-    setJson2Name("JSON_2.json") // Reset to default name
+    setJson1Name("JSON_1.json")
+    setJson2Name("JSON_2.json")
     setJson1Error(undefined)
     setJson2Error(undefined)
     setComparisonResult(null)
@@ -247,8 +247,8 @@ export function JsonComparator() {
 
   const loadPreset = (presetKey: keyof typeof PRESET_EXAMPLES) => {
     const preset = PRESET_EXAMPLES[presetKey]
-    handleJson1Change(preset.json1, `${preset.name} - JSON 1`) // Use handler for auto-format
-    handleJson2Change(preset.json2, `${preset.name} - JSON 2`) // Use handler for auto-format
+    handleJson1Change(preset.json1, `${preset.name} - JSON 1`)
+    handleJson2Change(preset.json2, `${preset.name} - JSON 2`)
     setJson1Error(undefined)
     setJson2Error(undefined)
   }
@@ -310,26 +310,28 @@ export function JsonComparator() {
     if (!comparisonResult) return null
 
     return (
-      <div className="flex flex-wrap items-center gap-2 mt-4 mb-2">
+      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2 sm:mt-4 mb-1 sm:mb-2">
         <Button
           size="sm"
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 sm:gap-2 text-xs"
           onClick={() => handleExport("csv")}
           disabled={isExporting}
+          title="Export comparison results as CSV"
         >
-          <Table className="h-4 w-4" />
-          {isExporting && exportFormat === "csv" ? "Exporting CSV..." : "Export as CSV"}
+          <Table className="h-3 w-3 sm:h-4 sm:w-4" />
+          {isExporting && exportFormat === "csv" ? "Exporting..." : "CSV"}
         </Button>
         <Button
           size="sm"
           variant="outline"
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 sm:gap-2 text-xs"
           onClick={() => handleExport("excel")}
           disabled={isExporting}
+          title="Export comparison results as Excel"
         >
-          <FileSpreadsheet className="h-4 w-4" />
-          {isExporting && exportFormat === "excel" ? "Exporting Excel..." : "Export as Excel"}
+          <FileSpreadsheet className="h-3 w-3 sm:h-4 sm:w-4" />
+          {isExporting && exportFormat === "excel" ? "Exporting..." : "Excel"}
         </Button>
       </div>
     )
@@ -337,15 +339,13 @@ export function JsonComparator() {
 
   // Top controls
   const topControls = (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 w-full">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 ml-auto">
-        {" "}
-        {/* Add ml-auto to push to right */}
         <Select
           value={settings.indentation.toString()}
           onValueChange={(value) => setSettings((prev) => ({ ...prev, indentation: Number.parseInt(value) }))}
         >
-          <SelectTrigger className="w-full sm:w-32">
+          <SelectTrigger className="w-full sm:w-32 text-xs sm:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -354,9 +354,9 @@ export function JsonComparator() {
             <SelectItem value="8">8 spaces</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" onClick={handleClearAll}>
-          <Trash2 className="h-4 w-4 mr-2" />
-          Clear All
+        <Button variant="outline" onClick={handleClearAll} size="sm" title="Clear all JSON inputs">
+          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="text-xs sm:text-sm">Clear All</span>
         </Button>
       </div>
     </div>
@@ -370,7 +370,6 @@ export function JsonComparator() {
       icon: <FileJson className="h-4 w-4" />,
       actions: (
         <JsonInputActions
-          // onFormat removed as auto-formatting is enabled
           onCopy={() => json1 && navigator.clipboard.writeText(json1)}
           onDownload={() => handleDownload("json1")}
           onUpload={() => document.getElementById("json1-upload")?.click()}
@@ -384,7 +383,7 @@ export function JsonComparator() {
           placeholder="Paste your first JSON here..."
           error={json1Error}
           isLoading={json1Loading}
-          fileName={undefined} // Changed from fileName={json1Name}
+          fileName={undefined}
           comparisonResult={jsonInputComparisonResultProp}
           side="left"
           highlightedPath={highlightedPath}
@@ -399,7 +398,6 @@ export function JsonComparator() {
       icon: <FileJson className="h-4 w-4" />,
       actions: (
         <JsonInputActions
-          // onFormat removed as auto-formatting is enabled
           onCopy={() => json2 && navigator.clipboard.writeText(json2)}
           onDownload={() => handleDownload("json2")}
           onUpload={() => document.getElementById("json2-upload")?.click()}
@@ -413,7 +411,7 @@ export function JsonComparator() {
           placeholder="Paste your second JSON here..."
           error={json2Error}
           isLoading={json2Loading}
-          fileName={undefined} // Changed from fileName={json2Name}
+          fileName={undefined}
           comparisonResult={jsonInputComparisonResultProp}
           side="right"
           highlightedPath={highlightedPath}
@@ -430,17 +428,27 @@ export function JsonComparator() {
         <div className="h-full w-full">
           {!comparisonResult && !isComparing && (
             <ColumnEmptyState
-              icon={<Info className="h-12 w-12" />}
+              icon={<Info className="h-8 w-8 sm:h-12 sm:w-12" />}
               title="Ready to Compare"
               description="Input JSON in both panels to see differences"
               action={
-                <div className="space-y-2 w-full max-w-xs">
-                  <Button variant="outline" onClick={() => loadPreset("basic")} className="w-full">
-                    <Sparkles className="h-4 w-4 mr-2" />
+                <div className="space-y-1 sm:space-y-2 w-full max-w-xs">
+                  <Button
+                    variant="outline"
+                    onClick={() => loadPreset("basic")}
+                    className="w-full text-xs sm:text-sm"
+                    size="sm"
+                  >
+                    <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Load Basic Example
                   </Button>
-                  <Button variant="outline" onClick={() => loadPreset("arrays")} className="w-full">
-                    <FileJson className="h-4 w-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => loadPreset("arrays")}
+                    className="w-full text-xs sm:text-sm"
+                    size="sm"
+                  >
+                    <FileJson className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Load Array Example
                   </Button>
                 </div>
@@ -451,35 +459,35 @@ export function JsonComparator() {
           {isComparing && <ColumnLoadingState message="Comparing JSON objects..." />}
 
           {comparisonResult && !isComparing && (
-            <div className="space-y-4 w-full">
+            <div className="space-y-2 sm:space-y-4 w-full">
               {/* Summary */}
-              <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border">
+              <div className="p-2 sm:p-3 lg:p-4 bg-muted/30 rounded-lg border">
                 {comparisonResult.areEqual ? (
                   <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                    <CheckCircle className="h-5 w-5" />
-                    <span className="font-medium text-sm">JSON objects are identical</span>
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="font-medium text-xs sm:text-sm">JSON objects are identical</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                    <AlertCircle className="h-5 w-5" />
-                    <span className="font-medium text-sm">{summary.total} differences found</span>
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="font-medium text-xs sm:text-sm">{summary.total} differences found</span>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="text-lg font-bold text-blue-600">{summary.modifications}</div>
+                <div className="grid grid-cols-2 gap-1 sm:gap-2 mt-2 sm:mt-3">
+                  <div className="text-center p-1 sm:p-2 bg-background rounded">
+                    <div className="text-sm sm:text-lg font-bold text-blue-600">{summary.modifications}</div>
                     <div className="text-xs text-muted-foreground">Modified</div>
                   </div>
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="text-lg font-bold text-green-600">{summary.additions}</div>
+                  <div className="text-center p-1 sm:p-2 bg-background rounded">
+                    <div className="text-sm sm:text-lg font-bold text-green-600">{summary.additions}</div>
                     <div className="text-xs text-muted-foreground">Added</div>
                   </div>
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="text-lg font-bold text-red-600">{summary.deletions}</div>
+                  <div className="text-center p-1 sm:p-2 bg-background rounded">
+                    <div className="text-sm sm:text-lg font-bold text-red-600">{summary.deletions}</div>
                     <div className="text-xs text-muted-foreground">Deleted</div>
                   </div>
-                  <div className="text-center p-2 bg-background rounded">
-                    <div className="text-lg font-bold text-gray-600">{summary.unchanged}</div>
+                  <div className="text-center p-1 sm:p-2 bg-background rounded">
+                    <div className="text-sm sm:text-lg font-bold text-gray-600">{summary.unchanged}</div>
                     <div className="text-xs text-muted-foreground">Unchanged</div>
                   </div>
                 </div>
@@ -489,9 +497,9 @@ export function JsonComparator() {
               <ExportButtons />
 
               {/* Settings */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm">Comparison Settings</h4>
-                <div className="space-y-2">
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="font-medium text-xs sm:text-sm">Comparison Settings</h4>
+                <div className="space-y-1 sm:space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="sort-keys" className="text-xs">
                       Sort Keys
@@ -537,8 +545,8 @@ export function JsonComparator() {
 
               {/* Differences List */}
               {summary.total > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Differences ({summary.total})</h4>
+                <div className="space-y-1 sm:space-y-2">
+                  <h4 className="font-medium text-xs sm:text-sm">Differences ({summary.total})</h4>
                   <div className="space-y-1">
                     {comparisonResult.differences.map((diff, index) => (
                       <Collapsible
@@ -548,11 +556,11 @@ export function JsonComparator() {
                       >
                         <CollapsibleTrigger
                           className={cn(
-                            "w-full text-left p-2 rounded-md hover:bg-accent transition-colors border flex items-start justify-between text-xs gap-2",
+                            "w-full text-left p-1 sm:p-2 rounded-md hover:bg-accent transition-colors border flex items-start justify-between text-xs gap-1 sm:gap-2",
                             highlightedPath === diff.path && "bg-accent ring-1 ring-primary",
                           )}
                         >
-                          <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <div className="flex items-start gap-1 sm:gap-2 flex-1 min-w-0">
                             <DiffTypeIcon type={diff.type} className="shrink-0 mt-0.5" />
                             <span className="font-mono break-all text-left leading-tight" title={diff.path || "Root"}>
                               {diff.path || "Root"}
@@ -564,7 +572,7 @@ export function JsonComparator() {
                             <ChevronRight className="h-3 w-3 shrink-0" />
                           )}
                         </CollapsibleTrigger>
-                        <CollapsibleContent className="p-2 text-xs border border-t-0 rounded-b-md bg-background">
+                        <CollapsibleContent className="p-1 sm:p-2 text-xs border border-t-0 rounded-b-md bg-background">
                           <div className="space-y-1">
                             <p className="font-medium capitalize">
                               {diff.type} at <span className="font-mono break-all">{diff.path || "Root"}</span>
