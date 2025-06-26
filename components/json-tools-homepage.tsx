@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, GitCompare, FileJson, ArrowRight } from "lucide-react"
+import { FileText, GitCompare, ArrowRight, Shield } from "lucide-react" // Import Shield
 import { Button } from "@/components/ui/button"
 
 const tools = [
@@ -20,7 +20,7 @@ const tools = [
     title: "Schema Validator",
     description: "Validate JSON against a schema with clear, detailed feedback.",
     href: "/validator",
-    icon: FileJson,
+    icon: Shield, // Ensure this is Shield
   },
 ]
 
