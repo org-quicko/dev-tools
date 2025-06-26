@@ -110,7 +110,7 @@ export function JsonToolsHomepage() {
 
       <div className="text-center pt-4">
         <p className="text-muted-foreground text-sm">
-          This is just the start. More tools are on the way—crafted with the same care and clarity.
+          Simple tools, thoughtfully made<br>
         </p>
       </div>
     </div>
