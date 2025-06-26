@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, Copy, Upload, FileText, Settings, CheckCircle, AlertTriangle, Trash2, Sparkles } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import Link from "next/link"
 import { prettifyJson } from "@/lib/json-utils" // Import prettifyJson
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
@@ -209,6 +208,39 @@ export function JsonFormatter() {
           </Dialog>
         </div>
 
+        {/* JSON Statistics */}
+        <Card className="tool-card mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">JSON Statistics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isValid && formattedJson ? (
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="text-2xl font-mono font-bold">{formattedJson.length.toLocaleString()}</div>
+                  <div className="text-muted-foreground">Characters</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-mono font-bold">
+                    {formattedJson.split("\n").length.toLocaleString()}
+                  </div>
+                  <div className="text-muted-foreground">Lines</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-mono font-bold">
+                    {(new Blob([formattedJson]).size / 1024).toFixed(2)} KB
+                  </div>
+                  <div className="text-muted-foreground">Size</div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center">
+                Statistics will appear when JSON is formatted.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Side by Side Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* JSON Input */}
@@ -337,56 +369,6 @@ export function JsonFormatter() {
               >
                 {formattedJson || "Formatted JSON will appear here..."}
               </pre>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Statistics and Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="tool-card">
-            <CardHeader>
-              <CardTitle className="text-lg">JSON Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isValid && formattedJson ? (
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Characters:</span>
-                    <span className="font-mono">{formattedJson.length.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Lines:</span>
-                    <span className="font-mono">{formattedJson.split("\n").length.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Size:</span>
-                    <span className="font-mono">{(new Blob([formattedJson]).size / 1024).toFixed(2)} KB</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Statistics will appear when JSON is formatted.</p>
-              )}
-            </CardContent>
-          </Card>
-          <Card className="tool-card">
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start" onClick={insertExample}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Insert Example
-              </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleClear}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear All
-              </Button>
-              <Link href="/comparator" className="block">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Compare JSON
-                </Button>
-              </Link>
             </CardContent>
           </Card>
         </div>
