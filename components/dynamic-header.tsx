@@ -2,38 +2,24 @@
 
 import { usePathname } from "next/navigation"
 import { SidebarTrigger } from "@/components/custom-sidebar"
+import { Separator } from "@/components/ui/separator"
 
-const pageConfig = {
-  "/": {
-    title: "Dev Tools",
-    description: "Developer Utilities",
-  },
-  "/formatter": {
-    title: "JSON Formatter",
-    description: "Format and beautify JSON data",
-  },
-  "/comparator": {
-    title: "JSON Comparator",
-    description: "Compare JSON files side by side",
-  },
-  "/validator": {
-    title: "Schema Validator",
-    description: "Validate JSON against schemas",
-  },
+const toolNames: { [key: string]: string } = {
+  "/": "Home",
+  "/formatter": "Formatter",
+  "/comparator": "Comparator",
+  "/validator": "Schema Validator",
 }
 
 export function DynamicHeader() {
   const pathname = usePathname()
-  const config = pageConfig[pathname as keyof typeof pageConfig] || pageConfig["/"]
+  const currentToolName = toolNames[pathname] || "Dev Tools" // Default to "Dev Tools" if path not found
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       <SidebarTrigger className="-ml-1" />
-      <div className="h-4 w-px bg-border" />
-      <div className="flex flex-col">
-        <h1 className="font-semibold text-sm">{config.title}</h1>
-        <p className="text-xs text-muted-foreground">{config.description}</p>
-      </div>
+      <Separator orientation="vertical" className="h-4" />
+      <h1 className="font-semibold">{currentToolName}</h1>
     </header>
   )
 }
