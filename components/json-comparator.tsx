@@ -384,7 +384,7 @@ export function JsonComparator() {
           placeholder="Paste your first JSON here..."
           error={json1Error}
           isLoading={json1Loading}
-          fileName={json1Name}
+          fileName={undefined} // Changed from fileName={json1Name}
           comparisonResult={jsonInputComparisonResultProp}
           side="left"
           highlightedPath={highlightedPath}
@@ -413,7 +413,7 @@ export function JsonComparator() {
           placeholder="Paste your second JSON here..."
           error={json2Error}
           isLoading={json2Loading}
-          fileName={json2Name}
+          fileName={undefined} // Changed from fileName={json2Name}
           comparisonResult={jsonInputComparisonResultProp}
           side="right"
           highlightedPath={highlightedPath}

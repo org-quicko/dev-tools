@@ -122,22 +122,7 @@ export function JsonFormatter() {
   }
 
   const insertExample = () => {
-    const example = `{
-  "name": "John Doe",
-  "age": 30,
-  "email": "john@example.com",
-  "address": {
-    "street": "123 Main St",
-    "city": "New York",
-    "zipCode": "10001"
-  },
-  "hobbies": ["reading", "coding", "hiking"],
-  "isActive": true,
-  "metadata": {
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-15T10:30:00Z"
-  }
-}`
+    const example = `{"name":"John Doe","age":30,"email":"john@example.com","address":{"street":"123 Main St","city":"New York","zipCode":"10001"},"hobbies":["reading","coding","hiking"],"isActive":true,"metadata":{"created":"2024-01-01T00:00:00Z","updated":"2024-01-15T10:30:00Z"}}`
     setJsonInput(example)
     validateAndFormat(example)
     setFileName("example.json")
