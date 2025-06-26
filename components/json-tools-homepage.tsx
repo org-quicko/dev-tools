@@ -48,7 +48,7 @@ export function JsonToolsHomepage() {
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-muted-foreground text-sm">
-                Each tool does one job, simply and clearly—so you can stay in flow and get back to what matters.
+                Each tool does one job, simply and clearly, so you can stay in flow and get back to what matters.
               </p>
             </CardContent>
           </Card>
