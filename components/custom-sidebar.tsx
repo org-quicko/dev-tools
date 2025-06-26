@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, FileText, GitCompare, CheckSquare, Menu, Code } from "lucide-react"
+import { Home, FileText, GitCompare, CheckSquare, SidebarIcon, Code } from "lucide-react"
 
 // Sidebar Context
 interface SidebarContextType {
@@ -158,7 +158,7 @@ export function SidebarTrigger({ className }: { className?: string }) {
       className={cn("h-8 w-8", className)}
       aria-label="Toggle sidebar"
     >
-      <Menu className="h-4 w-4" />
+      <SidebarIcon className="h-4 w-4" />
     </Button>
   )
 }
