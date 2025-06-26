@@ -178,27 +178,24 @@ export function JsonFormatter() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <textarea
-                  value={jsonInput}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  placeholder="Paste your JSON here or upload a file..."
-                  className="zinc-textarea h-96 font-mono text-sm"
-                />
-                {!jsonInput && (
-                  <div className="mt-4 text-center">
-                    <Button variant="outline" onClick={insertExample}>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Insert Example JSON
-                    </Button>
-                  </div>
-                )}
-                {error && (
-                  <Alert variant="destructive" className="mt-4 zinc-alert zinc-alert-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+              <CardContent className="flex flex-col p-4">
+                <div className="relative flex-1 min-h-[200px]">
+                  <textarea
+                    value={jsonInput}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    placeholder="" // Placeholder moved to the overlay
+                    className="zinc-textarea w-full h-full font-mono text-sm resize-none"
+                  />
+                  {!jsonInput && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
+                      <p className="mb-4">Paste your JSON here or upload a file...</p>
+                      <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Insert Example JSON
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <input
                   id="file-upload"
                   type="file"
@@ -206,6 +203,12 @@ export function JsonFormatter() {
                   onChange={handleFileUpload}
                   className="hidden"
                 />
+                {error && (
+                  <Alert variant="destructive" className="mt-4 zinc-alert zinc-alert-destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
 
@@ -248,8 +251,8 @@ export function JsonFormatter() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <pre className="zinc-scrollbar w-full h-96 p-3 font-mono text-sm border rounded-lg overflow-auto bg-muted/30 text-foreground">
+              <CardContent className="flex flex-col p-4">
+                <pre className="zinc-scrollbar w-full flex-1 min-h-[200px] p-3 font-mono text-sm border rounded-lg overflow-auto bg-background text-foreground">
                   {formattedJson || "Formatted JSON will appear here..."}
                 </pre>
               </CardContent>
