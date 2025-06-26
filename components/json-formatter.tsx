@@ -12,6 +12,7 @@ import { Download, Copy, Upload, FileText, Settings, CheckCircle, AlertTriangle,
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Link from "next/link"
 import { prettifyJson } from "@/lib/json-utils" // Import prettifyJson
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface FormatterSettings {
   indentation: number
@@ -154,147 +155,20 @@ export function JsonFormatter() {
   return (
     <TooltipProvider>
       <div className="tool-container">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <Card className="tool-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Upload className="h-5 w-5" />
-                    JSON Input
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    {fileName && (
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">{fileName}</span>
-                    )}
-                    {isValid && (
-                      <div className="flex items-center gap-1 text-green-600">
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="text-xs">Valid JSON</span>
-                      </div>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => document.getElementById("file-upload")?.click()}
-                          className="h-8 w-8"
-                        >
-                          <Upload className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Upload JSON file</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={handleClear} className="h-8 w-8">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Clear all</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col p-4">
-                <div className="relative flex-1">
-                  {" "}
-                  {/* Removed min-h-[200px] from here */}
-                  <textarea
-                    ref={inputRef} // Attach ref
-                    value={jsonInput}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    placeholder="" // Placeholder moved to the overlay
-                    className="zinc-textarea w-full font-mono text-sm resize-none" // Removed h-full
-                    style={{ minHeight: "200px", overflowY: "hidden" }} // Set minHeight and overflow directly on textarea
-                  />
-                  {!jsonInput && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
-                      <p className="mb-4">Paste your JSON here or upload a file...</p>
-                      <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Insert Example JSON
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept=".json,application/json"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                {error && (
-                  <Alert variant="destructive" className="mt-4 zinc-alert zinc-alert-destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="tool-card">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText className="h-5 w-5" />
-                    Formatted JSON
-                  </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleCopy}
-                          disabled={!formattedJson}
-                          className="h-8 w-8"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Copy to clipboard</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleDownload}
-                          disabled={!formattedJson}
-                          className="h-8 w-8"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Download formatted JSON</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="flex flex-col p-4">
-                <pre
-                  ref={outputRef} // Attach ref
-                  className="zinc-scrollbar w-full p-3 font-mono text-sm border rounded-lg bg-background text-foreground" // Removed flex-1, min-h, overflow-auto
-                  style={{ minHeight: "200px", overflowY: "auto" }} // Set minHeight and overflow directly on pre
-                >
-                  {formattedJson || "Formatted JSON will appear here..."}
-                </pre>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <Card className="tool-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-5 w-5" />
-                  Formatting Options
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+        {/* Settings Button */}
+        <div className="flex justify-end mb-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Formatting Options
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Formatting Options</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="indentation">Indentation</Label>
                   <Select
@@ -330,55 +204,191 @@ export function JsonFormatter() {
                     }}
                   />
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="tool-card">
-              <CardHeader>
-                <CardTitle className="text-lg">JSON Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isValid && formattedJson ? (
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Characters:</span>
-                      <span className="font-mono">{formattedJson.length.toLocaleString()}</span>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Side by Side Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* JSON Input */}
+          <Card className="tool-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Upload className="h-5 w-5" />
+                  JSON Input
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {fileName && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">{fileName}</span>
+                  )}
+                  {isValid && (
+                    <div className="flex items-center gap-1 text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="text-xs">Valid JSON</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Lines:</span>
-                      <span className="font-mono">{formattedJson.split("\n").length.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Size:</span>
-                      <span className="font-mono">{(new Blob([formattedJson]).size / 1024).toFixed(2)} KB</span>
-                    </div>
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => document.getElementById("file-upload")?.click()}
+                        className="h-8 w-8"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Upload JSON file</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" onClick={handleClear} className="h-8 w-8">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Clear all</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col p-4">
+              <div className="relative flex-1">
+                <textarea
+                  ref={inputRef}
+                  value={jsonInput}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  placeholder=""
+                  className="zinc-textarea w-full font-mono text-sm resize-none"
+                  style={{ minHeight: "400px", overflowY: "hidden" }}
+                />
+                {!jsonInput && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
+                    <p className="mb-4">Paste your JSON here or upload a file...</p>
+                    <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Insert Example JSON
+                    </Button>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Statistics will appear when JSON is formatted.</p>
                 )}
-              </CardContent>
-            </Card>
-            <Card className="tool-card">
-              <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={insertExample}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Insert Example
+              </div>
+              <input
+                id="file-upload"
+                type="file"
+                accept=".json,application/json"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              {error && (
+                <Alert variant="destructive" className="mt-4 zinc-alert zinc-alert-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Formatted JSON */}
+          <Card className="tool-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5" />
+                  Formatted JSON
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleCopy}
+                        disabled={!formattedJson}
+                        className="h-8 w-8"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copy to clipboard</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleDownload}
+                        disabled={!formattedJson}
+                        className="h-8 w-8"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Download formatted JSON</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col p-4">
+              <pre
+                ref={outputRef}
+                className="zinc-scrollbar w-full p-3 font-mono text-sm border rounded-lg bg-background text-foreground"
+                style={{ minHeight: "400px", overflowY: "auto" }}
+              >
+                {formattedJson || "Formatted JSON will appear here..."}
+              </pre>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Statistics and Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="tool-card">
+            <CardHeader>
+              <CardTitle className="text-lg">JSON Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isValid && formattedJson ? (
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Characters:</span>
+                    <span className="font-mono">{formattedJson.length.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Lines:</span>
+                    <span className="font-mono">{formattedJson.split("\n").length.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="font-mono">{(new Blob([formattedJson]).size / 1024).toFixed(2)} KB</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Statistics will appear when JSON is formatted.</p>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="tool-card">
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" size="sm" className="w-full justify-start" onClick={insertExample}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Insert Example
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleClear}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All
+              </Button>
+              <Link href="/comparator" className="block">
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Compare JSON
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleClear}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Clear All
-                </Button>
-                <Link href="/comparator" className="block">
-                  <Button variant="outline" size="sm" className="w-full justify-start">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Compare JSON
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </TooltipProvider>
