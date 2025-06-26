@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react" // Import useRef and useEffect
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -28,6 +28,25 @@ export function JsonFormatter() {
     indentation: 2,
     sortKeys: false,
   })
+
+  const inputRef = useRef<HTMLTextAreaElement>(null) // Ref for the input textarea
+  const outputRef = useRef<HTMLPreElement>(null) // Ref for the output pre tag
+
+  // Auto-resize input textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto" // Reset height to auto
+      inputRef.current.style.height = inputRef.current.scrollHeight + "px" // Set height to scrollHeight
+    }
+  }, [jsonInput]) // Re-run when jsonInput changes
+
+  // Auto-resize output pre tag
+  useEffect(() => {
+    if (outputRef.current) {
+      outputRef.current.style.height = "auto" // Reset height to auto
+      outputRef.current.style.height = outputRef.current.scrollHeight + "px" // Set height to scrollHeight
+    }
+  }, [formattedJson]) // Re-run when formattedJson changes
 
   const validateAndFormat = useCallback(
     (input: string) => {
@@ -179,12 +198,16 @@ export function JsonFormatter() {
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col p-4">
-                <div className="relative flex-1 min-h-[200px]">
+                <div className="relative flex-1">
+                  {" "}
+                  {/* Removed min-h-[200px] from here */}
                   <textarea
+                    ref={inputRef} // Attach ref
                     value={jsonInput}
                     onChange={(e) => handleInputChange(e.target.value)}
                     placeholder="" // Placeholder moved to the overlay
-                    className="zinc-textarea w-full h-full font-mono text-sm resize-none"
+                    className="zinc-textarea w-full font-mono text-sm resize-none" // Removed h-full
+                    style={{ minHeight: "200px", overflowY: "hidden" }} // Set minHeight and overflow directly on textarea
                   />
                   {!jsonInput && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
@@ -252,7 +275,11 @@ export function JsonFormatter() {
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col p-4">
-                <pre className="zinc-scrollbar w-full flex-1 min-h-[200px] p-3 font-mono text-sm border rounded-lg overflow-auto bg-background text-foreground">
+                <pre
+                  ref={outputRef} // Attach ref
+                  className="zinc-scrollbar w-full p-3 font-mono text-sm border rounded-lg bg-background text-foreground" // Removed flex-1, min-h, overflow-auto
+                  style={{ minHeight: "200px", overflowY: "auto" }} // Set minHeight and overflow directly on pre
+                >
                   {formattedJson || "Formatted JSON will appear here..."}
                 </pre>
               </CardContent>
