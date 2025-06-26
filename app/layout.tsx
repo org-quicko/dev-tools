@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <div className="h-4 w-px bg-border" />
                   <h1 className="font-semibold">Dev Tools</h1>
                 </header>
-                <main className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-auto">{children}</main>
+                <main className="flex flex-1 flex-col gap-4 p-4 overflow-auto pt-6 pl-6">{children}</main>
               </SidebarInset>
             </div>
           </SidebarProvider>
