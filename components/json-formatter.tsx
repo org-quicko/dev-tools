@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useRef, useEffect } from "react" // Import useRef and useEffect
+import { useState, useCallback, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, Copy, Upload, FileText, Settings, CheckCircle, AlertTriangle, Trash2, Sparkles } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { prettifyJson } from "@/lib/json-utils" // Import prettifyJson
+import { prettifyJson } from "@/lib/json-utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { JsonSyntaxHighlighter } from "@/components/json-syntax-highlighter"
 
 interface FormatterSettings {
   indentation: number
@@ -29,24 +30,24 @@ export function JsonFormatter() {
     sortKeys: false,
   })
 
-  const inputRef = useRef<HTMLTextAreaElement>(null) // Ref for the input textarea
-  const outputRef = useRef<HTMLPreElement>(null) // Ref for the output pre tag
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const outputRef = useRef<HTMLPreElement>(null)
 
   // Auto-resize input textarea
   useEffect(() => {
     if (inputRef.current) {
-      inputRef.current.style.height = "auto" // Reset height to auto
-      inputRef.current.style.height = inputRef.current.scrollHeight + "px" // Set height to scrollHeight
+      inputRef.current.style.height = "auto"
+      inputRef.current.style.height = inputRef.current.scrollHeight + "px"
     }
-  }, [jsonInput]) // Re-run when jsonInput changes
+  }, [jsonInput])
 
   // Auto-resize output pre tag
   useEffect(() => {
     if (outputRef.current) {
-      outputRef.current.style.height = "auto" // Reset height to auto
-      outputRef.current.style.height = outputRef.current.scrollHeight + "px" // Set height to scrollHeight
+      outputRef.current.style.height = "auto"
+      outputRef.current.style.height = outputRef.current.scrollHeight + "px"
     }
-  }, [formattedJson]) // Re-run when formattedJson changes
+  }, [formattedJson])
 
   const validateAndFormat = useCallback(
     (input: string) => {
@@ -57,7 +58,7 @@ export function JsonFormatter() {
         return
       }
       try {
-        const formatted = prettifyJson(input, settings) // Use prettifyJson
+        const formatted = prettifyJson(input, settings)
         setFormattedJson(formatted)
         setError(null)
         setIsValid(true)
@@ -116,7 +117,6 @@ export function JsonFormatter() {
 
     try {
       await navigator.clipboard.writeText(formattedJson)
-      // You could add a toast notification here
     } catch (err) {
       console.error("Failed to copy to clipboard:", err)
     }
@@ -149,7 +149,12 @@ export function JsonFormatter() {
 }`
     setJsonInput(example)
     validateAndFormat(example)
+    setFileName("example.json")
   }
+
+  // Get display names for headers
+  const inputDisplayName = fileName || "JSON Input"
+  const outputDisplayName = fileName ? fileName.replace(/\.[^/.]+$/, "-formatted.json") : "Formatted JSON"
 
   return (
     <TooltipProvider>
@@ -245,39 +250,36 @@ export function JsonFormatter() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* JSON Input */}
           <Card className="tool-card">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Upload className="h-5 w-5" />
-                  JSON Input
-                </CardTitle>
                 <div className="flex items-center gap-2">
-                  {fileName && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">{fileName}</span>
-                  )}
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-sm">{inputDisplayName}</span>
                   {isValid && (
                     <div className="flex items-center gap-1 text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-xs">Valid JSON</span>
+                      <CheckCircle className="h-3 w-3" />
+                      <span className="text-xs">Valid</span>
                     </div>
                   )}
+                </div>
+                <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={() => document.getElementById("file-upload")?.click()}
-                        className="h-8 w-8"
+                        className="h-7 w-7"
                       >
-                        <Upload className="h-4 w-4" />
+                        <Upload className="h-3.5 w-3.5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Upload JSON file</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" onClick={handleClear} className="h-8 w-8">
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" onClick={handleClear} className="h-7 w-7">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Clear all</TooltipContent>
@@ -285,24 +287,41 @@ export function JsonFormatter() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col p-4">
+            <CardContent className="flex flex-col p-4 pt-0">
               <div className="relative flex-1">
-                <textarea
-                  ref={inputRef}
-                  value={jsonInput}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  placeholder=""
-                  className="zinc-textarea w-full font-mono text-sm resize-none"
-                  style={{ minHeight: "400px", overflowY: "hidden" }}
-                />
-                {!jsonInput && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
-                    <p className="mb-4">Paste your JSON here or upload a file...</p>
-                    <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Insert Example JSON
-                    </Button>
+                {jsonInput ? (
+                  <JsonSyntaxHighlighter
+                    json={jsonInput}
+                    className="w-full font-mono text-sm border rounded-lg p-3"
+                    style={{ minHeight: "400px", maxHeight: "600px", overflowY: "auto" }}
+                  />
+                ) : (
+                  <div className="relative">
+                    <textarea
+                      ref={inputRef}
+                      value={jsonInput}
+                      onChange={(e) => handleInputChange(e.target.value)}
+                      placeholder=""
+                      className="zinc-textarea w-full font-mono text-sm resize-none"
+                      style={{ minHeight: "400px", overflowY: "hidden" }}
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground pointer-events-none">
+                      <p className="mb-4">Paste your JSON here or upload a file...</p>
+                      <Button variant="outline" onClick={insertExample} className="pointer-events-auto">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Insert Example JSON
+                      </Button>
+                    </div>
                   </div>
+                )}
+                {jsonInput && (
+                  <textarea
+                    ref={inputRef}
+                    value={jsonInput}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    className="absolute inset-0 w-full h-full font-mono text-sm resize-none bg-transparent text-transparent caret-white z-10 p-3"
+                    style={{ minHeight: "400px" }}
+                  />
                 )}
               </div>
               <input
@@ -323,23 +342,23 @@ export function JsonFormatter() {
 
           {/* Formatted JSON */}
           <Card className="tool-card">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FileText className="h-5 w-5" />
-                  Formatted JSON
-                </CardTitle>
                 <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-sm">{outputDisplayName}</span>
+                </div>
+                <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={handleCopy}
                         disabled={!formattedJson}
-                        className="h-8 w-8"
+                        className="h-7 w-7"
                       >
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-3.5 w-3.5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Copy to clipboard</TooltipContent>
@@ -347,13 +366,13 @@ export function JsonFormatter() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
                         onClick={handleDownload}
                         disabled={!formattedJson}
-                        className="h-8 w-8"
+                        className="h-7 w-7"
                       >
-                        <Download className="h-4 w-4" />
+                        <Download className="h-3.5 w-3.5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Download formatted JSON</TooltipContent>
@@ -361,14 +380,21 @@ export function JsonFormatter() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="flex flex-col p-4">
-              <pre
-                ref={outputRef}
-                className="zinc-scrollbar w-full p-3 font-mono text-sm border rounded-lg bg-background text-foreground"
-                style={{ minHeight: "400px", overflowY: "auto" }}
-              >
-                {formattedJson || "Formatted JSON will appear here..."}
-              </pre>
+            <CardContent className="flex flex-col p-4 pt-0">
+              {formattedJson ? (
+                <JsonSyntaxHighlighter
+                  json={formattedJson}
+                  className="w-full font-mono text-sm border rounded-lg p-3"
+                  style={{ minHeight: "400px", maxHeight: "600px", overflowY: "auto" }}
+                />
+              ) : (
+                <div
+                  className="w-full p-3 font-mono text-sm border rounded-lg bg-background text-muted-foreground flex items-center justify-center"
+                  style={{ minHeight: "400px" }}
+                >
+                  Formatted JSON will appear here...
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
