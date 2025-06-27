@@ -6,7 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, FileText, GitCompare, CheckSquare, SidebarIcon, Code } from "lucide-react"
+import { Home, FileText, GitCompare, CheckSquare, SidebarIcon, PencilRulerIcon,Code } from "lucide-react"
 
 // Sidebar Context
 interface SidebarContextType {
@@ -101,7 +101,7 @@ export function CustomSidebar() {
         ) : (
           <div className="flex w-full justify-center">
             <div className="flex h-6 w-6 items-center justify-center rounded bg-primary">
-              <Code className="h-4 w-4 text-primary-foreground" />
+              <PencilRulerIcon className="h-4 w-4 text-primary-foreground" />
             </div>
           </div>
         )}

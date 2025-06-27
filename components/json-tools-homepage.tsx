@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { FileText, GitCompare, Shield, ArrowRight } from "lucide-react"
+import { FileText, GitCompare, ArrowRight, CheckSquare } from "lucide-react"
 import Link from "next/link"
 
 const tools = [
@@ -21,7 +21,7 @@ const tools = [
   {
     title: "Schema Validator",
     description: "Check your JSON against a schema with detailed, human-friendly feedback.",
-    icon: Shield,
+    icon: CheckSquare,
     href: "/validator",
   },
 ]
@@ -88,8 +88,8 @@ export function JsonToolsHomepage() {
               <Card key={tool.title} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
                 <CardHeader className="pb-2 sm:pb-3">
                   <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
-                    <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" title={tool.title} />
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                      <Icon className="size-4" />
                     </div>
                     <CardTitle className="text-base sm:text-lg">{tool.title}</CardTitle>
                   </div>
@@ -110,7 +110,7 @@ export function JsonToolsHomepage() {
       </div>
 
       {/* Footer Tagline */}
-      <p className="text-sm text-muted-foreground text-center py-4">Simple tools, thoughtfully made — with ❤️</p>
+      <p className="text-sm text-muted-foreground text-center py-4">Simple tools, thoughtfully made with ❤️</p>
     </div>
   )
 }

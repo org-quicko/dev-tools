@@ -1,9 +1,9 @@
 "use client"
 
-import * as React from "react"
+import type * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Code, Home, FileText, GitCompare, Shield } from "lucide-react"
+import { Code, Home, FileText, GitCompare, CheckSquare } from "lucide-react"
 
 import {
   Sidebar,
@@ -41,7 +41,7 @@ const data = {
     {
       title: "Schema Validator",
       url: "/validator",
-      icon: Shield,
+      icon: CheckSquare,
     },
   ],
 }
