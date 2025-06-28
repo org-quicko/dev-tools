@@ -85,8 +85,11 @@ export function JsonToolsHomepage() {
           {tools.map((tool) => {
             const Icon = tool.icon
             return (
-              <Card key={tool.title} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
-                <CardHeader className="pb-2 sm:pb-3">
+              <Card
+                key={tool.title}
+                className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-1 flex flex-col h-full"
+              >
+                <CardHeader className="pb-2 sm:pb-3 flex-1">
                   <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                       <Icon className="size-4" />
@@ -95,7 +98,7 @@ export function JsonToolsHomepage() {
                   </div>
                   <CardDescription className="text-xs sm:text-sm">{tool.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 mt-auto">
                   <Button asChild className="w-full text-xs sm:text-sm" size="sm">
                     <Link href={tool.href} className="flex items-center justify-center gap-2">
                       Open Tool
