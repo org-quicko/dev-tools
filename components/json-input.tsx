@@ -45,6 +45,7 @@ export function JsonInput({
   const lineRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
   const [inlineValidation, setInlineValidation] = useState<ValidationResult>({ isValid: true })
+  const [dropError, setDropError] = useState<string | undefined>(undefined) // New state for drag-and-drop errors
 
   const handleLocalValidation = (jsonText: string) => {
     const result = validateJson(jsonText)
@@ -54,6 +55,7 @@ export function JsonInput({
   const handleChange = (newValue: string) => {
     onValueChange(newValue)
     handleLocalValidation(newValue)
+    setDropError(undefined) // Clear drop error on manual change
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -72,6 +74,7 @@ export function JsonInput({
     e.preventDefault()
     if (readOnly) return
     setIsDragOver(false)
+    setDropError(undefined) // Clear previous drop error
 
     try {
       const files = Array.from(e.dataTransfer.files)
@@ -80,12 +83,12 @@ export function JsonInput({
       )
 
       if (!jsonFile) {
-        console.error("Please drop a valid JSON file.")
+        setDropError("Please drop a valid JSON file (.json).")
         return
       }
 
       if (jsonFile.size > 10 * 1024 * 1024) {
-        console.error("File size too large. Please select a file smaller than 10MB.")
+        setDropError("File size too large. Please select a file smaller than 10MB.")
         return
       }
 
@@ -99,7 +102,7 @@ export function JsonInput({
       onValueChange(content, jsonFile.name)
       handleLocalValidation(content)
     } catch (err) {
-      console.error("Failed to process dropped file. Please try again.")
+      setDropError("Failed to process dropped file. Please try again.")
     }
   }
 
@@ -243,6 +246,11 @@ export function JsonInput({
           <AlertDescription className="text-xs">
             {formatJsonError(inlineValidation.error, inlineValidation.lineNumber, inlineValidation.columnNumber)}
           </AlertDescription>
+        </Alert>
+      )}
+      {dropError && (
+        <Alert variant="destructive" className="mt-1 sm:mt-2">
+          <AlertDescription className="text-xs">{dropError}</AlertDescription>
         </Alert>
       )}
     </div>

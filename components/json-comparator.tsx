@@ -95,11 +95,11 @@ export function JsonComparator() {
   // State
   const [json1, setJson1] = useState("")
   const [json2, setJson2] = useState("")
-  const [json1Name, setJson1Name] = useState("JSON_1.json")
+  const [json1Name, setJson1Name] = useState("JSON 1") // Changed display name
   const [json1Error, setJson1Error] = useState<string | undefined>(undefined)
   const [json1Loading, setJson1Loading] = useState(false)
 
-  const [json2Name, setJson2Name] = useState("JSON_2.json")
+  const [json2Name, setJson2Name] = useState("JSON 2") // Changed display name
   const [json2Error, setJson2Error] = useState<string | undefined>(undefined)
   const [json2Loading, setJson2Loading] = useState(false)
 
@@ -220,8 +220,8 @@ export function JsonComparator() {
   const handleClearAll = () => {
     setJson1("")
     setJson2("")
-    setJson1Name("JSON_1.json")
-    setJson2Name("JSON_2.json")
+    setJson1Name("JSON 1") // Reset to default display name
+    setJson2Name("JSON 2") // Reset to default display name
     setJson1Error(undefined)
     setJson2Error(undefined)
     setComparisonResult(null)
@@ -314,7 +314,7 @@ export function JsonComparator() {
         <Button
           size="sm"
           variant="outline"
-          className="flex items-center gap-1 sm:gap-2 text-xs"
+          className="flex items-center gap-1 sm:gap-2 text-xs bg-transparent"
           onClick={() => handleExport("csv")}
           disabled={isExporting}
           title="Export comparison results as CSV"
@@ -325,7 +325,7 @@ export function JsonComparator() {
         <Button
           size="sm"
           variant="outline"
-          className="flex items-center gap-1 sm:gap-2 text-xs"
+          className="flex items-center gap-1 sm:gap-2 text-xs bg-transparent"
           onClick={() => handleExport("excel")}
           disabled={isExporting}
           title="Export comparison results as Excel"
